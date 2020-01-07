@@ -30,7 +30,6 @@ getc(void)
         return DUART_RBA;
     }
     return -1;
-    return -1;
 }
 
 void
