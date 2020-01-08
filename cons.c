@@ -48,9 +48,53 @@ int
 getc(void)
 {
     if (DUART_SRA & DUART_SR_RECEIVER_READY) {
-        return DUART_RBA;
+        unsigned char c = DUART_RBA;
+//        fmt("got %b\n", c);
+        return c;
     }
     return -1;
+}
+
+char *
+gets(void)
+{
+    static char buf[100];
+    static const unsigned maxlen = sizeof(buf) - 1;
+    unsigned len = 0;
+
+    for (;;) {
+        int c = getc();
+        if (c > 0) {
+            switch (c) {
+                case '\b':
+                    if (len > 0) {
+                        puts("\b \b");
+                        len--;
+                    }
+                    break;
+                case 0x0b: // ^k
+                case 0x15: // ^u
+                    while (len > 0) {
+                        puts("\b \b");
+                        len--;
+                    }
+                    break;
+                case '\r':
+                case '\n':
+                    buf[len] = '\0';
+                    putc('\n');
+                    return buf;
+                case ' '...126:
+                    if (len < maxlen) {
+                        buf[len++] = c;
+                        putc(c);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 }
 
 static const char *hextab = "0123456789abcdef";
@@ -141,15 +185,15 @@ hexdump(const void *addr, uint32_t address, unsigned length)
  *  %s      string
  */
 void
-fmt(const char *str, ...)
+fmt(const char *format, ...)
 {
     char c;
     va_list ap;
     bool dofmt = false;
 
-    va_start(ap, str);
+    va_start(ap, format);
 
-    while ((c = *str++) != 0) {
+    while ((c = *format++) != 0) {
         if (!dofmt) {
             if (c == '%') {
                 dofmt = true;
@@ -213,6 +257,149 @@ fmt(const char *str, ...)
                 break;
         }
     }
+}
+
+/*
+ * low-rent scanf-like thing
+ *
+ * Supports:
+ *  %u      unsigned decimal integer
+ *  %l      hex long (up to 8 digits)
+ *  %s      string, needs 2 args, pointer & max length (unsigned)
+ *
+ * Returns the number of arguments converted, or -1 if
+ * a match fails.
+ */
+static int
+scan_decval(char c) 
+{
+    if ((c >= '0') && (c <= '9')) {
+        return c - '0';
+    }
+    return -1;
+}
+
+static int
+scan_hexval(char c) 
+{
+    if ((c >= '0') && (c <= '9')) {
+        return c - '0';
+    }
+    if ((c >= 'a') && (c <= 'f')) {
+        return c - 'a' + 10;
+    }
+    if ((c >= 'A') && (c <= 'F')) {
+        return c - 'A' + 10;
+    }
+    return -1;
+}
+
+static int
+scan_digits(const char **bp, unsigned long *result, int (*scanner)(char c))
+{
+    const char *p = *bp;
+    *result = 0;
+
+    if (scanner(*p) < 0) {
+        return -1;
+    }
+
+    int digit;
+    while ((digit = scanner(*p)) >= 0) {
+        *result *= 10;
+        *result += digit;
+        p++;
+    }
+    *bp = p;
+    return 0;
+}
+
+
+
+int
+scan(const char *buf, const char *format, ...)
+{
+    char c;
+    va_list ap;
+    int ret = 0;
+    bool dofmt = 0;
+
+    va_start(ap, format);
+
+    while ((c = *format++) != 0) {
+        if (*buf == 0) {
+            return -1;
+        }
+        if (!dofmt) {
+            if (c != '%') {
+                if (*buf++ != c) {
+                    return -1;
+                }
+            } else {
+                dofmt = true;
+            }
+            continue;
+        }
+        dofmt = false;
+
+        void *vvp = va_arg(ap, void *);
+        if (vvp == 0) {
+            return -1;
+        }
+        switch (c) {
+            case 'u':
+            {
+                unsigned *vp = (unsigned *)vvp;
+                unsigned long tv;
+                if (scan_digits(&buf, &tv, scan_decval) < 0) {
+                    return -1;
+                }
+                *vp = tv;
+                ret++;
+                break;
+            }
+            case 'l':
+            {
+                unsigned long *vp = (unsigned long *)vvp;
+                if (scan_digits(&buf, vp, scan_hexval) < 0) {
+                    return -1;
+                }
+                ret++;
+                break;
+            }
+            case 's':
+            {
+                char *vp = (char *)vvp;
+                unsigned len = va_arg(ap, unsigned);
+                if (len < 1) {
+                    return -1;
+                }
+                unsigned index = 0;
+                for (;;) {
+                    if ((*buf == 0)
+                        || (*buf == ' ')
+                        || (*buf == '\t')
+                        || (*buf == '\n')
+                        || (*buf == '\r')) {
+                        break;
+                    }
+                    char c = *buf++;
+                    if ((index + 1) < len) {
+                        vp[index++] = c;
+                    }
+                }
+                vp[index] = '\0';
+                ret++;
+                break;
+            }
+            default:
+                if (*buf++ != c) {
+                    return -1;
+                }
+                break;
+        }
+    }
+    return ret;
 }
 
 void

@@ -3,8 +3,8 @@
  */
 #include <stdint.h>
 
-#define REG8(_adr)      (*(uint8_t *)(_adr))
-#define REG16(_adr)     (*(uint16_t *)(_adr))
+#define REG8(_adr)      (*(volatile uint8_t *)(_adr))
+#define REG16(_adr)     (*(volatile uint16_t *)(_adr))
 
 #define I2C_BASE                0xffd000UL
 #define I2C_REG                 REG8(I2C_BASE)

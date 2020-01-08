@@ -6,10 +6,12 @@ extern void puts(const char *str);
 extern void putln(const char *str);
 extern void putc(char c);
 extern int getc(void);
+extern char *gets(void);
 extern void putx(uint32_t value, unsigned len);
 extern void putd(uint32_t value);
 extern void hexdump(const void *addr, uint32_t address, unsigned length);
-extern void fmt(const char *str, ...);
+extern void fmt(const char *format, ...);
+extern int scan(const char *buf, const char *format, ...);
 extern void cons_test(void);
 
 extern int init_disk();

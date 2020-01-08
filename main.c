@@ -24,4 +24,10 @@ main(void)
     cons_test();
 #endif
 
+    // REPL
+    for (;;) {
+        puts("] ");
+        char *cmd = gets();
+        fmt("got: %s\n", cmd);
+    }
 }
