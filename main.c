@@ -5,6 +5,10 @@
 #include "regs.h"
 #include "proto.h"
 
+#define STR(_x) #_x
+#define XSTR(_x) STR(_x)
+static const char *banner = "68k monitor " XSTR(GITHASH);
+
 void 
 main(void)
 {
@@ -14,7 +18,10 @@ main(void)
     // DUART init
     init_cons();
     led('1');
-    puts("M68K monitor ROM");
+    putln(banner);
 
-    for (;;) {}
+#ifdef TEST
+    cons_test();
+#endif
+
 }

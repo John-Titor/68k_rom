@@ -1,12 +1,10 @@
 /*
  * Register layout for Tiny68K
  */
+#include <stdint.h>
 
-typedef volatile unsigned char reg8;
-typedef volatile unsigned short reg16;
-
-#define REG8(_adr)      (*(reg8 *)(_adr))
-#define REG16(_adr)     (*(reg16 *)(_adr))
+#define REG8(_adr)      (*(uint8_t *)(_adr))
+#define REG16(_adr)     (*(uint16_t *)(_adr))
 
 #define I2C_BASE                0xffd000UL
 #define I2C_REG                 REG8(I2C_BASE)

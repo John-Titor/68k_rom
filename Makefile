@@ -9,7 +9,15 @@ BINARY			 = $(PRODUCT).bin
 ELF			 = $(PRODUCT).elf
 MAP			 = $(PRODUCT).map
 
-OPTS			 = -mcpu=68000 \
+LIBGCC			:= $(shell $(CC) --print-file-name libgcc.a)
+COMPILER_INCLUDES	 = $(dir $(LIBGCC))include
+
+GITHASH			:= $(shell git describe --always --dirty=-modified)
+
+OPTS			 = -I$(COMPILER_INCLUDES) \
+			   -DGITHASH=$(GITHASH) \
+			   -DTEST=1 \
+			   -mcpu=68000 \
 			   -mshort \
 			   -std=gnu17 \
 			   -Wall \
@@ -31,7 +39,7 @@ $(BINARY): $(ELF)
 	$(OBJCOPY) -O binary $< $@
 
 $(ELF): $(SRCS) $(HDRS) $(LINKER_SCRIPT) $(MAKEFILE_LIST)
-	$(CC) $(OPTS) -T $(LINKER_SCRIPT) -o $@ $(SRCS)
+	$(CC) $(OPTS) -T $(LINKER_SCRIPT) -o $@ $(SRCS) $(LIBGCC)
 
 clean:
 	rm -f $(BINARY) $(ELF) $(MAP)
