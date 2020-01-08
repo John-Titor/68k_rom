@@ -2,7 +2,6 @@
  * ROM for Tiny68k
  */
 
-#include "regs.h"
 #include "proto.h"
 
 #define STR(_x) #_x
@@ -27,7 +26,9 @@ main(void)
     // REPL
     for (;;) {
         puts("] ");
-        char *cmd = gets();
-        fmt("got: %s\n", cmd);
+        char *cmd;
+        if ((cmd = gets()) != NULL) {
+            fmt("got: %u %s\n", (unsigned)strlen(cmd), cmd);
+        }
     }
 }

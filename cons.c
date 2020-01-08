@@ -1,9 +1,5 @@
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdbool.h>
-
-#include "regs.h"
 #include "proto.h"
+#include "regs.h"
 
 void
 init_cons(void)
@@ -19,9 +15,12 @@ init_cons(void)
 void
 puts(const char *str)
 {
-    if (str)
+    if (str) {
         while (*str != '\0')
             putc(*str++);
+    } else {
+        puts("(null)");
+    }
 }
 
 void
@@ -72,6 +71,9 @@ gets(void)
                         len--;
                     }
                     break;
+                case 0x03: // ^c
+                    puts("^C\n");
+                    return NULL;
                 case 0x0b: // ^k
                 case 0x15: // ^u
                     while (len > 0) {
@@ -263,8 +265,8 @@ fmt(const char *format, ...)
  * low-rent scanf-like thing
  *
  * Supports:
- *  %u      unsigned decimal integer
- *  %l      hex long (up to 8 digits)
+ *  %w      unsigned word, decimal or hex
+ *  %l      unsigned long, decimal or hex
  *  %s      string, needs 2 args, pointer & max length (unsigned)
  *
  * Returns the number of arguments converted, or -1 if
@@ -295,18 +297,29 @@ scan_hexval(char c)
 }
 
 static int
-scan_digits(const char **bp, unsigned long *result, int (*scanner)(char c))
+scan_digits(const char **bp, unsigned long *result)
 {
+    int (*scanner)(char c);
     const char *p = *bp;
     *result = 0;
+    int scaler = 0;
 
-    if (scanner(*p) < 0) {
+    // auto-detect hex vs. decimal (could learn more prefixes?)
+    if ((strlen(p) >= 3)
+        && !strcmp(p, "0x")
+        && (scan_hexval(*(p + 2)) >= 0)) {
+        scanner = scan_hexval;
+        scaler = 16;
+    } else if (scan_decval(*p >= 0)) {
+        scanner = scan_decval;
+        scaler = 10;
+    } else {
         return -1;
     }
 
     int digit;
     while ((digit = scanner(*p)) >= 0) {
-        *result *= 10;
+        *result *= scaler;
         *result += digit;
         p++;
     }
@@ -314,10 +327,10 @@ scan_digits(const char **bp, unsigned long *result, int (*scanner)(char c))
     return 0;
 }
 
-
+#define ISSPACE(_x) (((_x) == ' ') || ((_x) == '\t'))
 
 int
-scan(const char *buf, const char *format, ...)
+sscan(const char *buf, const char *format, ...)
 {
     char c;
     va_list ap;
@@ -331,6 +344,14 @@ scan(const char *buf, const char *format, ...)
             return -1;
         }
         if (!dofmt) {
+            // any space in the format discards space in the buffer
+            if (ISSPACE(c)) {
+                while (ISSPACE(*buf)) {
+                    buf++;
+                }
+                continue;
+            }
+            // any non-space in the format must match in the buffer
             if (c != '%') {
                 if (*buf++ != c) {
                     return -1;
@@ -342,26 +363,29 @@ scan(const char *buf, const char *format, ...)
         }
         dofmt = false;
 
+        // leading whitespace before conversions is always discarded
+        while (ISSPACE(*buf)) {
+            buf++;
+        }
         void *vvp = va_arg(ap, void *);
         if (vvp == 0) {
             return -1;
         }
         switch (c) {
-            case 'u':
+            case 'w':
             {
-                unsigned *vp = (unsigned *)vvp;
                 unsigned long tv;
-                if (scan_digits(&buf, &tv, scan_decval) < 0) {
+                if (scan_digits(&buf, &tv) < 0) {
                     return -1;
                 }
-                *vp = tv;
+                *(unsigned *)vvp = tv;
                 ret++;
                 break;
             }
             case 'l':
             {
                 unsigned long *vp = (unsigned long *)vvp;
-                if (scan_digits(&buf, vp, scan_hexval) < 0) {
+                if (scan_digits(&buf, vp) < 0) {
                     return -1;
                 }
                 ret++;
@@ -415,12 +439,16 @@ cons_test(void)
         "%%b 0x12: %b\n"
         "%%w 0x3456: %w\n"
         "%%l 0x7890abcd: %l\n"
-        "%%s test message: %s\n",
+        "%%s test message: %s\n"
+        "%%s NULL: %s\n",
         -5678,
         1234,
         fmt,
         0x12,
         0x3456,
         0x7890abcd,
-        "test message");
+        "test message",
+        NULL);
+
+    // XXX scan tests
 }

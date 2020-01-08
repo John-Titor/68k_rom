@@ -1,3 +1,11 @@
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
+
+extern size_t strlen(const char *s);
+extern int strcmp(const char *s1, const char *s2);
+
 extern void init_led();
 extern void led(char c);
 
