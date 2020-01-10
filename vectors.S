@@ -34,5 +34,8 @@ __reset:
      * default handler for unexpected exceptions
      */
     .global __unhandled_exception
+    .extern unhandled_exception
 __unhandled_exception:
+    movem   %d0-%a6, -(%sp)
+    jbsr    unhandled_exception
     bra     .

@@ -128,7 +128,7 @@ gets(void)
 static const char *hextab = "0123456789abcdef";
 
 void
-putx(uint32_t value, unsigned len)
+putx(uint32_t value, size_t len)
 {
     unsigned shifts = len * 2;
     char buf[shifts + 1];
@@ -165,8 +165,8 @@ putd(uint32_t value)
 
 #define WSELECT(_s, _l, _w, _b) ((_s) == 'l') ? (_l) : ((_s) == 'w') ? (_w) : (_b)
 
-unsigned
-hexdump(uintptr_t addr, uintptr_t address, unsigned length, char width)
+size_t
+hexdump(uintptr_t addr, uintptr_t address, size_t length, char width)
 {
     unsigned index;
     unsigned incr = WSELECT(width, 4, 2, 1);
@@ -260,7 +260,7 @@ fmt(const char *format, ...)
             }
             case 'b':
             {
-                uint8_t v = va_arg(ap, int);
+                uint8_t v = va_arg(ap, unsigned);
                 putx(v, sizeof(v));
                 break;
             }
@@ -359,9 +359,9 @@ scan(const char *buf, const char *format, ...)
     va_start(ap, format);
 
     while ((c = *format++) != 0) {
-        // input string exhausted
+        // input string exhausted; success if we made any conversions
         if (*buf == 0) {
-            return ret;
+            return ret > 0 ? ret : -1;
         }
         if (!dofmt) {
             // any space in the format discards space in the buffer
@@ -398,16 +398,6 @@ scan(const char *buf, const char *format, ...)
                 ret++;
                 break;
             }
-            case 'w':
-            {
-                uint32_t tv;
-                if (scan_digits(&buf, &tv) < 0) {
-                    return -1;
-                }
-                *(uint16_t *)vvp = tv;
-                ret++;
-                break;
-            }
             case 'l':
             {
                 uint32_t *vp = (uint32_t *)vvp;
@@ -420,17 +410,13 @@ scan(const char *buf, const char *format, ...)
             case 's':
             {
                 char *vp = (char *)vvp;
-                unsigned len = va_arg(ap, unsigned);
+                size_t len = va_arg(ap, size_t);
                 if (len < 1) {
                     return -1;
                 }
                 unsigned index = 0;
                 for (;;) {
-                    if ((*buf == 0)
-                        || (*buf == ' ')
-                        || (*buf == '\t')
-                        || (*buf == '\n')
-                        || (*buf == '\r')) {
+                    if ((*buf == 0) || ISSPACE(*buf)) {
                         break;
                     }
                     char c = *buf++;

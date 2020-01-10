@@ -18,7 +18,6 @@ OPTS			 = -I$(COMPILER_INCLUDES) \
 			   -DGITHASH=$(GITHASH) \
 			   -DTEST=1 \
 			   -mcpu=68000 \
-			   -mshort \
 			   -std=gnu17 \
 			   -Wall \
 			   -Wextra \

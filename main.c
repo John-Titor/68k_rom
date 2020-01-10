@@ -44,6 +44,12 @@ cmd_help(const char *input_buffer)
     if (scan(input_buffer, "help") < 0) {
         return -1;
     }
-    putln("helpful");
+    puts(
+        "md.[bwl] [address [length]]     dump bytes/words/longs from address\n"
+        "                                to address+length\n"
+#ifdef TEST
+        "tests                           run unit tests\n"
+#endif
+    );
     return 0;
 }

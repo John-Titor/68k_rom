@@ -39,7 +39,7 @@ extern char *gets(void);
  * @param[in]  value  the value to print
  * @param[in]  len    the number of bytes from the value to print
  */
-extern void putx(uint32_t value, unsigned len);
+extern void putx(uint32_t value, size_t len);
 
 /**
  * @brief      print a decimal value
@@ -58,7 +58,7 @@ extern void putd(uint32_t value);
  * 
  * @return     number of bytes printed (may be rounded down)
  */
-extern unsigned hexdump(uintptr_t addr, uintptr_t address, unsigned length, char width);
+extern size_t hexdump(uintptr_t addr, uintptr_t address, size_t length, char width);
 
 /**
  * @brief      printf-style output formatter
@@ -83,9 +83,8 @@ extern void fmt(const char *format, ...);
  *
  * Supports:
  *  %c      character (char *)
- *  %w      unsigned word, decimal or hex (unsigned short *)
- *  %l      unsigned long, decimal or hex (unsigned long *)
- *  %s      string, needs 2 args, pointer & max length (char *, unsigned short)
+ *  %l      unsigned number, decimal or hex with preceding 0x (uint32_t *)
+ *  %s      string, needs 2 args, pointer & max length (char *, size_t)
  *
  * @param[in]  buf        buffer to scan
  * @param[in]  format     format string

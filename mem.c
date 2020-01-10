@@ -6,7 +6,7 @@ static int
 cmd_memdump(const char *input_buffer)
 {
 	static uint32_t address = 0;
-	static uint16_t count = 512;
+	static uint32_t count = 512;
 	char width;
 
 	if (scan(input_buffer, "md.%c %l %w", &width, &address, &count) >= 1) {
