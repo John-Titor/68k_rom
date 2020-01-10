@@ -11,24 +11,39 @@ static const char *banner = "68k monitor " XSTR(GITHASH);
 void 
 main(void)
 {
-    // 7seg display init
+    // initialize things
     init_led();
-
-    // DUART init
     init_cons();
     led('1');
     putln(banner);
-
-#ifdef TEST
-    cons_test();
-#endif
 
     // REPL
     for (;;) {
         puts("] ");
         char *cmd;
+        int ret = -1;
         if ((cmd = gets()) != NULL) {
-            fmt("got: %u %s\n", (unsigned)strlen(cmd), cmd);
+            for (cmd_handler_fn *cfp = &__commands; cfp < &__commands_end; cfp++) {
+                ret = (*cfp)(cmd);
+                if (ret >= 0) {
+                    break;
+                }
+            }
+            if (ret < 0) {
+                putln("ERROR");
+            }
         }
     }
+}
+
+COMMAND(cmd_help);
+
+static int
+cmd_help(const char *input_buffer)
+{
+    if (scan(input_buffer, "help") < 0) {
+        return -1;
+    }
+    putln("helpful");
+    return 0;
 }

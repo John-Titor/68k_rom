@@ -119,6 +119,10 @@ SECTIONS
 		*(.got.plt) *(.got);
 		*(.shdata);
 		*(.data .data.*);
+		. = ALIGN(0x4);
+		PROVIDE(__commands = .);
+		KEEP(*(COMMANDS))
+		PROVIDE(__commands_end = .);
 		_edata = .;
 	} > ram
 
