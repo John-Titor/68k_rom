@@ -1,0 +1,25 @@
+Tasks:
+  ☐ REPL command support
+    ☐ help
+    ☐ memory dumper
+  ☐ CF driver
+    ☐ init
+    ☐ block read
+  ☐ filesystem reader
+    ☐ raw FAT16 / ExFAT disk
+    ☐ MBR
+    ☐ locate file in root directory (8.3 naming)
+    ☐ read file into memory
+  selftest commands:
+    ☐ exception generator
+    ☐ disk reader
+    ☐ memory exerciser
+
+Things to fix:
+  ✔ explicitly size everything, unsigned -> uint16_t, long -> uint32_t etc. @done (20-01-09 20:04)
+
+Nice to have:
+  ☐ disassembly format
+
+Tests:
+  ✔ scan needs test cases @done (20-01-09 20:04)

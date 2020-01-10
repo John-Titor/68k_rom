@@ -138,7 +138,7 @@ putd(uint32_t value)
 }
 
 void
-hexdump(const void *addr, uint32_t address, unsigned length)
+hexdump(const void *addr, uintptr_t address, unsigned length)
 {
     unsigned char *p = (unsigned char *)addr;
 
@@ -174,18 +174,6 @@ hexdump(const void *addr, uint32_t address, unsigned length)
     }
 }
 
-/*
- * low-rent printf-like thing
- *
- * Supports:
- *  %d      signed decimal integer
- *  %u      unsigned decimal integer
- *  %p      pointer (32-bit hex)
- *  %b      hex byte
- *  %w      hex word
- *  %l      hex long
- *  %s      string
- */
 void
 fmt(const char *format, ...)
 {
@@ -206,6 +194,12 @@ fmt(const char *format, ...)
         }
         dofmt = false;
         switch (c) {
+            case 'c':
+            {
+                char c = va_arg(ap, int);
+                putc(c);
+                break;
+            }
             case 'd':
             {
                 int v = va_arg(ap, int);
@@ -261,17 +255,6 @@ fmt(const char *format, ...)
     }
 }
 
-/*
- * low-rent scanf-like thing
- *
- * Supports:
- *  %w      unsigned word, decimal or hex
- *  %l      unsigned long, decimal or hex
- *  %s      string, needs 2 args, pointer & max length (unsigned)
- *
- * Returns the number of arguments converted, or -1 if
- * a match fails.
- */
 static int
 scan_decval(char c) 
 {
@@ -297,7 +280,7 @@ scan_hexval(char c)
 }
 
 static int
-scan_digits(const char **bp, unsigned long *result)
+scan_digits(const char **bp, uint32_t *result)
 {
     int (*scanner)(char c);
     const char *p = *bp;
@@ -306,11 +289,12 @@ scan_digits(const char **bp, unsigned long *result)
 
     // auto-detect hex vs. decimal (could learn more prefixes?)
     if ((strlen(p) >= 3)
-        && !strcmp(p, "0x")
+        && !strncmp(p, "0x", 2)
         && (scan_hexval(*(p + 2)) >= 0)) {
         scanner = scan_hexval;
         scaler = 16;
-    } else if (scan_decval(*p >= 0)) {
+        p += 2;
+    } else if (scan_decval(*p) >= 0) {
         scanner = scan_decval;
         scaler = 10;
     } else {
@@ -330,7 +314,7 @@ scan_digits(const char **bp, unsigned long *result)
 #define ISSPACE(_x) (((_x) == ' ') || ((_x) == '\t'))
 
 int
-sscan(const char *buf, const char *format, ...)
+scan(const char *buf, const char *format, ...)
 {
     char c;
     va_list ap;
@@ -340,8 +324,9 @@ sscan(const char *buf, const char *format, ...)
     va_start(ap, format);
 
     while ((c = *format++) != 0) {
+        // input string exhausted
         if (*buf == 0) {
-            return -1;
+            return ret;
         }
         if (!dofmt) {
             // any space in the format discards space in the buffer
@@ -372,19 +357,25 @@ sscan(const char *buf, const char *format, ...)
             return -1;
         }
         switch (c) {
+            case 'c':
+            {
+                *(char *)vvp = *buf++;
+                ret++;
+                break;
+            }
             case 'w':
             {
-                unsigned long tv;
+                uint32_t tv;
                 if (scan_digits(&buf, &tv) < 0) {
                     return -1;
                 }
-                *(unsigned *)vvp = tv;
+                *(uint16_t *)vvp = tv;
                 ret++;
                 break;
             }
             case 'l':
             {
-                unsigned long *vp = (unsigned long *)vvp;
+                uint32_t *vp = (uint32_t *)vvp;
                 if (scan_digits(&buf, vp) < 0) {
                     return -1;
                 }
@@ -450,5 +441,13 @@ cons_test(void)
         "test message",
         NULL);
 
-    // XXX scan tests
+    const char *scantest = "test  a 1234 0x789 0xabcDE";
+    const char *scanfmt = "test %c %w %w %l";
+    char v1 = 0;
+    uint16_t v2 = 0;
+    uint16_t v3 = 0;
+    uint32_t v4 = 0;
+    int result = scan(scantest, scanfmt, &v1, &v2, &v3, &v4);
+
+    fmt("scan '%s' -> %d, %c %u 0x%w 0x%l\n", scantest, result, v1, v2, v3, v4);
 }

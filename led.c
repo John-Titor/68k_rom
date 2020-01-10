@@ -2,7 +2,7 @@
 #include "proto.h"
 
 static const char *led7_syms = "0123456789abcdefgh-?";
-static const unsigned char led7_tab[] = {
+static const uint8_t led7_tab[] = {
     /* 0 */ LED_SEG_A | LED_SEG_B | LED_SEG_C | LED_SEG_D | LED_SEG_E | LED_SEG_F |         0,
     /* 1 */         0 | LED_SEG_B | LED_SEG_C |         0 |         0 |         0 |         0,
     /* 2 */ LED_SEG_A | LED_SEG_B |         0 | LED_SEG_D | LED_SEG_E |         0 | LED_SEG_G,

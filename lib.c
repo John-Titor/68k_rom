@@ -22,10 +22,30 @@ strcmp(const char *s1, const char *s2)
 			return -1;
 		}
 		if (c1 > c2) {
-			return -1;
+			return 1;
 		}
 		if (c1 == 0) {
 			return 0;
 		}
 	}
+}
+
+int
+strncmp(const char *s1, const char *s2, size_t n)
+{
+	while (n--) {
+		char c1 = *s1++;
+		char c2 = *s2++;
+
+		if (c1 < c2) {
+			return -1;
+		}
+		if (c1 > c2) {
+			return 1;
+		}
+		if (c1 == 0) {
+			return 0;
+		}
+	}
+	return 0;
 }
