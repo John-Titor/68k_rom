@@ -15,7 +15,7 @@ main(void)
     init_led();
     init_cons();
     led('1');
-    putln(banner);
+    fmt("%s\ntry 'help'\n", banner);
 
     // REPL
     for (;;) {
@@ -45,11 +45,15 @@ cmd_help(const char *input_buffer)
         return -1;
     }
     puts(
-        "md.[bwl] [address [length]]     dump bytes/words/longs from address\n"
-        "                                to address+length\n"
+        "Commands:\n"
+        "=========\n"
+        "md.[bwl] [address [length]]   dump bytes/words/longs\n"
+        "reset                         reset peripherals\n"
 #ifdef TEST
-        "tests                           run unit tests\n"
+        "tests                         run unit tests\n"
 #endif
+        "\n^K clears input line\n"
+        "^C aborts input\n\n"
     );
     return 0;
 }

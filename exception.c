@@ -41,5 +41,11 @@ cmd_exception(const char *input_buffer)
 				return -1;
 		}
 	}
+
+	if (!strncmp(input_buffer, "reset", 5)) {
+		__asm__ volatile("reset");
+		return 0;
+	}
+
 	return -1;
 }
