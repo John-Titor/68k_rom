@@ -4,64 +4,97 @@
 #define SECTOR_SIZE     512
 #define SECTOR_WORDS    (SECTOR_SIZE / 2)
 
-static uint16_t  sector_buffer[SECTOR_WORDS];
+static uint16_t  cf_sector_buffer[SECTOR_WORDS];
+static bool cf_detected = false;
 
-void
-init_cf()
+static int
+cf_command(uint8_t command, uint32_t lba, uint8_t count)
 {
-    // set SRST
-    // observe BSY
-    // clear SRST
-    // observe !BSY (31s)
-    // observe DRDY (30s)
-}
+    if ((!cf_detected)
+            || (lba > IDE_MAXLBA)) {
+        return -1;
+    }
 
-static void
-cf_setlba(uint32_t lba)
-{
+    // XXX check BSY here
+
     IDE_LBA_3 = ((lba >> 24) & 0x3f) | IDE_LBA_3_LBA;
     IDE_LBA_2 = (lba >> 16) & 0xff;
     IDE_LBA_1 = (lba >> 8) & 0xff;
     IDE_LBA_0 = lba & 0xff;
+    IDE_SECTOR_COUNT = count;
+    IDE_COMMAND = command;
+
+    // XXX timeout
+    for (;;) {
+        uint8_t status = IDE_STATUS;
+
+        if (status & IDE_STATUS_ERR) {
+            return IDE_ERROR;
+        }
+
+        if (status & IDE_STATUS_DRQ) {
+            return 0;
+        }
+    }
+}
+
+static void
+cf_sector_in()
+{
+    // read and unswap bytes
+    for (unsigned idx = 0; idx < SECTOR_WORDS; idx++) {
+        uint16_t bytes = IDE_DATA16;
+        cf_sector_buffer[idx] = (bytes >> 8) | (bytes << 8);   // optimizes to ROR.W #8
+    }
 }
 
 void *
 cf_read(uint32_t lba)
 {
-    // technically we should check DRDY before starting here...
+    switch (cf_command(IDE_CMD_READ_SECTORS, lba, 1)) {
+    case 0:
+        cf_sector_in();
+        return &cf_sector_buffer;
 
-    if (lba > IDE_MAXLBA) {
+    default:
+        fmt("CF: READ error 0x%b\n", IDE_ERROR);
+
+    // FALLTHROUGH
+    case -1:
         return NULL;
     }
+}
 
-    cf_setlba(lba);
+void
+init_cf()
+{
+    // Tiny68k doesn't decode /CS1 so no device control register -> no soft reset
 
-    // read a sector
-    IDE_SECTOR_COUNT = 1;
-    IDE_COMMAND = IDE_CMD_READ_SECTORS;
+    cf_detected = true;
 
-    // wait for device ready
-    for (;;) {
-        // could use alt status here (but why?)
-        uint8_t status = IDE_STATUS;
+    switch (cf_command(IDE_CMD_IDENTIFY_DEVICE, 0, 0)) {
+    case -1:
+        putln("CF: no device");
+        cf_detected = false;
+        break;
 
-        // oops, an error
-        if (status & IDE_STATUS_ERR) {
-            fmt("CF: read error LBA 0x%l: 0x%b\n", lba, IDE_ERROR);
-            return NULL;
+    case 0:
+        cf_sector_in();
+        hexdump((uintptr_t)cf_sector_buffer, 0, SECTOR_SIZE, 1);
+        puts("CF: ");
+        char *p = (char *) & (cf_sector_buffer[27]);
+        unsigned len = 40;
+
+        while (len--) {
+            putc(*p++);
         }
 
-        // data be ready
-        if (status & IDE_STATUS_DRQ) {
-            break;
-        }
-    }
+        putc('\n');
+        break;
 
-    // read and unswap bytes
-    for (unsigned idx = 0; idx < SECTOR_WORDS; idx++) {
-        uint16_t bytes = IDE_DATA16;
-        sector_buffer[idx] = (bytes >> 8) | (bytes << 8);   // optimizes to ROR.W #8
+    default:
+        fmt("CF: IDENTIFY error 0x%b\n", IDE_ERROR);
+        cf_detected = false;
+        break;
     }
-
-    return sector_buffer;
 }

@@ -37,6 +37,7 @@
 #define IDE_COMMAND             REG8(IDE_BASE + 0x0f)
 #define IDE_CMD_READ_SECTORS        0x20
 #define IDE_CMD_WRITE_SECTORS       0x30
+#define IDE_CMD_IDENTIFY_DEVICE     0xec
 
 #define DUART_BASE              0xfff000UL
 #define DUART_MRA               REG8(DUART_BASE + 0x01)

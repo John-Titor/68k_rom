@@ -40,12 +40,13 @@ cons_test()
 static void
 cf_test()
 {
-    init_cf();
     putln("CF read LBA 0...");
     void *buf = cf_read(0);
 
     if (buf) {
         hexdump((uintptr_t)buf, 0, 512, 'b');
+    } else {
+        putln("CF read failed (no device?)");
     }
 }
 

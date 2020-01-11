@@ -19,6 +19,10 @@ extern int cons_getc();
 extern void init_cf();
 extern void *cf_read(uint32_t lba);
 
+extern void init_fs();
+extern int fs_open(const char *filename);
+extern int fs_read(uint32_t offset, size_t len);
+
 typedef int (*cmd_handler_fn)(const char *input_buffer);
 #define COMMAND(handler_function)                               \
     static int handler_function(const char *input_buffer);      \
