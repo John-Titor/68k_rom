@@ -3,6 +3,8 @@
  */
 #include <stdint.h>
 
+#define RAM_END					0xff8000
+
 #define REG8(_adr)      (*(volatile uint8_t *)(_adr))
 #define REG16(_adr)     (*(volatile uint16_t *)(_adr))
 
