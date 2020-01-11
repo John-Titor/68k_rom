@@ -33,13 +33,17 @@ OPTS			 = -I$(COMPILER_INCLUDES) \
 
 CSRCS			:= $(wildcard *.c)
 ASRCS			:= $(wildcard *.S)
+LIBSRCS			:= $(wildcard newlib/*.c) $(wildcard newlib/*.S)
 HDRS			:= $(wildcard *.h)
+
+ALL_SRCS		:= $(CSRCS) $(ASRCS) $(LIBSRCS)
+FORMAT_SRCS		:= $(CSRCS) $(HDRS)
 
 $(BINARY): $(ELF)
 	$(OBJCOPY) -O binary $< $@
 
 $(ELF): $(CSRCS) $(ASRCS) $(HDRS) $(LINKER_SCRIPT) $(MAKEFILE_LIST)
-	$(CC) $(OPTS) -T $(LINKER_SCRIPT) -o $@ $(ASRCS) $(CSRCS) $(LIBGCC)
+	$(CC) $(OPTS) -T $(LINKER_SCRIPT) -o $@ $(ALL_SRCS) $(LIBGCC)
 
 clean:
 	rm -f $(BINARY) $(ELF) $(MAP)
@@ -61,4 +65,4 @@ reformat:
 	--keep-one-line-blocks \
 	--formatted \
 	--suffix=none \
-	$(CSRCS) $(HDRS)
+	$(FORMAT_SRCS)

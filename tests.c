@@ -37,6 +37,18 @@ cons_test()
     fmt("scan '%s' -> %d, %c %u 0x%w 0x%l\n", scantest, result, v1, v2, v3, v4);
 }
 
+static void
+cf_test()
+{
+    init_cf();
+    putln("CF read LBA 0...");
+    void *buf = cf_read(0);
+
+    if (buf) {
+        hexdump((uintptr_t)buf, 0, 512, 'b');
+    }
+}
+
 #ifdef TEST
 COMMAND(cmd_test);
 #endif
@@ -49,6 +61,7 @@ cmd_test(const char *input_buffer)
     }
 
     cons_test();
+    cf_test();
     // XXX add more tests
 
     return 0;
