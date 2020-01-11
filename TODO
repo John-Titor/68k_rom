@@ -1,7 +1,7 @@
 Tasks:
-  ☐ REPL command support
-    ☐ help
-    ☐ memory dumper
+  ✔ REPL command support @done (20-01-09 22:30)
+    ✔ help @done (20-01-09 22:30)
+    ✔ memory dumper @done (20-01-09 22:30)
   ☐ CF driver
     ☐ init
     ☐ block read
@@ -10,6 +10,11 @@ Tasks:
     ☐ MBR
     ☐ locate file in root directory (8.3 naming)
     ☐ read file into memory
+  ☐ I2C read/write
+    ☐ utility command
+    ☐ read/write EEPROM
+    ☐ NVRAM
+    
   selftest commands:
     ☐ exception generator
     ☐ disk reader

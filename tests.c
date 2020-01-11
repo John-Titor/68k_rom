@@ -1,10 +1,12 @@
 #include "proto.h"
 
 static void
-cons_test(void)
+cons_test()
 {
-    putc('A'); putc('\n');
-    puts("puts test:"); puts(" one line\n");
+    putc('A');
+    putc('\n');
+    puts("puts test:");
+    puts(" one line\n");
     putln("putln test: one line");
     fmt("fmt test:\n"
         "%%d -5678: %d\n"
@@ -45,6 +47,7 @@ cmd_test(const char *input_buffer)
     if (scan(input_buffer, "test") < 0) {
         return -1;
     }
+
     cons_test();
     // XXX add more tests
 

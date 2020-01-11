@@ -107,7 +107,7 @@
 //            |   |
 //            E   C
 //            |_D_|
-//   
+//
 #define LED_SEG_A                   (1U << 1)
 #define LED_SEG_B                   (1U << 2)
 #define LED_SEG_C                   (1U << 3)

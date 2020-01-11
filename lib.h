@@ -7,7 +7,7 @@ extern int strcmp(const char *s1, const char *s2);
 extern int strncmp(const char *s1, const char *s2, size_t n);
 
 extern void putc(char c);
-extern int getc(void);
+extern int getc();
 
 /**
  * @brief      print a string to the console
@@ -26,12 +26,12 @@ extern void putln(const char *str);
 /**
  * @brief      get a line of text from the console
  *
- * @return     pointer to a static buffer containing the 
+ * @return     pointer to a static buffer containing the
  *             line that was read, or NULL if ^C was read.
  *             The buffer is guaranteed to be nul-terminated
  *             and input larger than the buffer is discarded.
  */
-extern char *gets(void);
+extern char *gets();
 
 /**
  * @brief      print a hexadecimal value
@@ -55,14 +55,14 @@ extern void putd(uint32_t value);
  * @param[in]  address  starting address to be displayed alongside the dump
  * @param[in]  length   number of bytes to dump
  * @param[in]  width    'b', 'w' or 'l' to select byte, word or long hex display
- * 
+ *
  * @return     number of bytes printed (may be rounded down)
  */
 extern size_t hexdump(uintptr_t addr, uintptr_t address, size_t length, char width);
 
 /**
  * @brief      printf-style output formatter
- * 
+ *
  * Supports:
  *  %c      character (char)
  *  %d      signed decimal integer (int)

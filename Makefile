@@ -31,14 +31,34 @@ OPTS			 = -I$(COMPILER_INCLUDES) \
 			   -Wl,-gc-sections \
 			   -Wl,-Map=$(MAP)
 
-SRCS			:= $(wildcard *.c) $(wildcard *.S)
+CSRCS			:= $(wildcard *.c)
+ASRCS			:= $(wildcard *.S)
 HDRS			:= $(wildcard *.h)
 
 $(BINARY): $(ELF)
 	$(OBJCOPY) -O binary $< $@
 
-$(ELF): $(SRCS) $(HDRS) $(LINKER_SCRIPT) $(MAKEFILE_LIST)
-	$(CC) $(OPTS) -T $(LINKER_SCRIPT) -o $@ $(SRCS) $(LIBGCC)
+$(ELF): $(CSRCS) $(ASRCS) $(HDRS) $(LINKER_SCRIPT) $(MAKEFILE_LIST)
+	$(CC) $(OPTS) -T $(LINKER_SCRIPT) -o $@ $(ASRCS) $(CSRCS) $(LIBGCC)
 
 clean:
 	rm -f $(BINARY) $(ELF) $(MAP)
+
+.PHONY: reformat
+reformat:
+	astyle \
+	--style=kr \
+	--indent=spaces=4 \
+	--indent-cases \
+	--indent-preprocessor \
+	--break-blocks \
+	--pad-oper \
+	--pad-header \
+	--unpad-paren \
+	--add-brackets \
+	--convert-tabs \
+	--align-pointer=name \
+	--keep-one-line-blocks \
+	--formatted \
+	--suffix=none \
+	$(CSRCS) $(HDRS)

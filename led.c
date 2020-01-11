@@ -9,7 +9,7 @@ static const uint8_t led7_tab[] = {
     /* 3 */ LED_SEG_A | LED_SEG_B | LED_SEG_C | LED_SEG_D |         0 |         0 | LED_SEG_G,
     /* 4 */         0 | LED_SEG_B | LED_SEG_C |         0 |         0 | LED_SEG_F | LED_SEG_G,
     /* 5 */ LED_SEG_A |         0 | LED_SEG_C | LED_SEG_D |         0 | LED_SEG_F | LED_SEG_G,
-    /* 6 */ LED_SEG_A |         0 | LED_SEG_C | LED_SEG_D | LED_SEG_E | LED_SEG_F | LED_SEG_G, 
+    /* 6 */ LED_SEG_A |         0 | LED_SEG_C | LED_SEG_D | LED_SEG_E | LED_SEG_F | LED_SEG_G,
     /* 7 */ LED_SEG_A | LED_SEG_B | LED_SEG_C |         0 |         0 |         0 |         0,
     /* 8 */ LED_SEG_A | LED_SEG_B | LED_SEG_C | LED_SEG_D | LED_SEG_E | LED_SEG_F | LED_SEG_G,
     /* 9 */ LED_SEG_A | LED_SEG_B | LED_SEG_C | LED_SEG_D |         0 | LED_SEG_F | LED_SEG_G,
@@ -40,9 +40,9 @@ led(char c)
 }
 
 void
-init_led(void)
+init_led()
 {
-	DUART_OPCR = 0;
-	LED_DATA_CLR = 0xff;
-	led('0');
+    DUART_OPCR = 0;
+    LED_DATA_CLR = 0xff;
+    led('0');
 }

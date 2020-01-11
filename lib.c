@@ -8,6 +8,7 @@ strlen(const char *s)
     while (*s++ != '\0') {
         len++;
     }
+
     return len;
 }
 
@@ -21,9 +22,11 @@ strcmp(const char *s1, const char *s2)
         if (c1 < c2) {
             return -1;
         }
+
         if (c1 > c2) {
             return 1;
         }
+
         if (c1 == 0) {
             return 0;
         }
@@ -40,13 +43,16 @@ strncmp(const char *s1, const char *s2, size_t n)
         if (c1 < c2) {
             return -1;
         }
+
         if (c1 > c2) {
             return 1;
         }
+
         if (c1 == 0) {
             return 0;
         }
     }
+
     return 0;
 }
 
@@ -66,8 +72,9 @@ void
 puts(const char *str)
 {
     if (str) {
-        while (*str != '\0')
+        while (*str != '\0') {
             putc(*str++);
+        }
     } else {
         puts("(null)");
     }
@@ -81,7 +88,7 @@ putln(const char *str)
 }
 
 char *
-gets(void)
+gets()
 {
     static char buf[100];
     static const unsigned maxlen = sizeof(buf) - 1;
@@ -89,37 +96,46 @@ gets(void)
 
     for (;;) {
         int c = getc();
+
         if (c > 0) {
             switch (c) {
-                case '\b':
-                    if (len > 0) {
-                        puts("\b \b");
-                        len--;
-                    }
-                    break;
-                case 0x03: // ^c
-                    puts("^C\n");
-                    return NULL;
-                case 0x0b: // ^k
-                case 0x15: // ^u
-                    while (len > 0) {
-                        puts("\b \b");
-                        len--;
-                    }
-                    break;
-                case '\r':
-                case '\n':
-                    buf[len] = '\0';
-                    putc('\n');
-                    return buf;
-                case ' '...126:
-                    if (len < maxlen) {
-                        buf[len++] = c;
-                        putc(c);
-                    }
-                    break;
-                default:
-                    break;
+            case '\b':
+                if (len > 0) {
+                    puts("\b \b");
+                    len--;
+                }
+
+                break;
+
+            case 0x03: // ^c
+                puts("^C\n");
+                return NULL;
+
+            case 0x0b: // ^k
+            case 0x15: // ^u
+                while (len > 0) {
+                    puts("\b \b");
+                    len--;
+                }
+
+                break;
+
+            case '\r':
+            case '\n':
+                buf[len] = '\0';
+                putc('\n');
+                return buf;
+
+            case ' '...126:
+                if (len < maxlen) {
+                    buf[len++] = c;
+                    putc(c);
+                }
+
+                break;
+
+            default:
+                break;
             }
         }
     }
@@ -135,11 +151,13 @@ putx(uint32_t value, size_t len)
     char *p = buf + shifts;
 
     *p = '\0';
+
     do {
         unsigned nibble = value & 0xf;
         value >>= 4;
         *--p = hextab[nibble];
     } while (p > buf);
+
     puts(p);
 }
 
@@ -160,6 +178,7 @@ putd(uint32_t value)
         value /= 10;
         *--p = hextab[digit];
     }
+
     puts(p);
 }
 
@@ -179,8 +198,10 @@ hexdump(uintptr_t addr, uintptr_t address, size_t length, char width)
 
         for (unsigned col = 0; col < 16; col += incr) {
             putc(' ');
+
             if ((index + col) >= length) {
                 unsigned count = WSELECT(width, 8, 4, 2);
+
                 while (count--) {
                     putc(' ');
                 }
@@ -190,11 +211,14 @@ hexdump(uintptr_t addr, uintptr_t address, size_t length, char width)
                 putx(val, incr);
             }
         }
+
         puts("  ");
+
         for (unsigned col = 0; col < 16; col++) {
             if ((index + col) < length) {
                 uintptr_t p = (addr + index + col);
                 unsigned c = *(char *)p;
+
                 if ((c >= ' ') && (c < 127)) {
                     putc(c);
                 } else {
@@ -204,8 +228,10 @@ hexdump(uintptr_t addr, uintptr_t address, size_t length, char width)
                 putc(' ');
             }
         }
+
         putc('\n');
     }
+
     return length;
 }
 
@@ -225,92 +251,101 @@ fmt(const char *format, ...)
             } else {
                 putc(c);
             }
+
             continue;
         }
+
         dofmt = false;
+
         switch (c) {
-            case 'c':
-            {
+        case 'c': {
                 char c = va_arg(ap, int);
                 putc(c);
                 break;
             }
-            case 'd':
-            {
+
+        case 'd': {
                 int v = va_arg(ap, int);
+
                 if (v < 0) {
                     putc('-');
                     v = -v;
                 }
+
                 putd(v);
                 break;
             }
-            case 'u':
-            {
+
+        case 'u': {
                 unsigned v = va_arg(ap, unsigned);
                 putd(v);
                 break;
             }
-            case 'p':
-            {
+
+        case 'p': {
                 void *v = va_arg(ap, void *);
                 puts("0x");
                 putx((uintptr_t)v, sizeof(v));
                 break;
             }
-            case 'b':
-            {
+
+        case 'b': {
                 uint8_t v = va_arg(ap, unsigned);
                 putx(v, sizeof(v));
                 break;
             }
-            case 'w':
-            {
+
+        case 'w': {
                 uint16_t v = va_arg(ap, unsigned);
                 putx(v, sizeof(v));
                 break;
             }
-            case 'l':
-            {
+
+        case 'l': {
                 uint32_t v = va_arg(ap, uint32_t);
                 putx(v, sizeof(v));
                 break;
             }
-            case 's':
-            {
+
+        case 's': {
                 const char *v = va_arg(ap, const char *);
                 puts(v);
                 break;
             }
-            default:
-                putc('%');
-                putc(c);
-                break;
+
+        default:
+            putc('%');
+            putc(c);
+            break;
         }
     }
 }
 
 static int
-scan_decval(char c) 
+scan_decval(char c)
 {
     if ((c >= '0') && (c <= '9')) {
         return c - '0';
     }
+
     return -1;
 }
 
 static int
-scan_hexval(char c) 
+scan_hexval(char c)
 {
     if ((c >= '0') && (c <= '9')) {
         return c - '0';
     }
+
     if ((c >= 'a') && (c <= 'f')) {
         return c - 'a' + 10;
     }
+
     if ((c >= 'A') && (c <= 'F')) {
         return c - 'A' + 10;
     }
+
     return -1;
 }
 
@@ -324,8 +359,8 @@ scan_digits(const char **bp, uint32_t *result)
 
     // auto-detect hex vs. decimal (could learn more prefixes?)
     if ((strlen(p) >= 3)
-        && !strncmp(p, "0x", 2)
-        && (scan_hexval(*(p + 2)) >= 0)) {
+            && !strncmp(p, "0x", 2)
+            && (scan_hexval(*(p + 2)) >= 0)) {
         scanner = scan_hexval;
         scaler = 16;
         p += 2;
@@ -337,11 +372,13 @@ scan_digits(const char **bp, uint32_t *result)
     }
 
     int digit;
+
     while ((digit = scanner(*p)) >= 0) {
         *result *= scaler;
         *result += digit;
         p++;
     }
+
     *bp = p;
     return 0;
 }
@@ -363,14 +400,17 @@ scan(const char *buf, const char *format, ...)
         if (*buf == 0) {
             return ret > 0 ? ret : -1;
         }
+
         if (!dofmt) {
             // any space in the format discards space in the buffer
             if (ISSPACE(c)) {
                 while (ISSPACE(*buf)) {
                     buf++;
                 }
+
                 continue;
             }
+
             // any non-space in the format must match in the buffer
             if (c != '%') {
                 if (*buf++ != c) {
@@ -379,61 +419,76 @@ scan(const char *buf, const char *format, ...)
             } else {
                 dofmt = true;
             }
+
             continue;
         }
+
         dofmt = false;
 
         // leading whitespace before conversions is always discarded
         while (ISSPACE(*buf)) {
             buf++;
         }
+
         void *vvp = va_arg(ap, void *);
+
         if (vvp == 0) {
             return -1;
         }
+
         switch (c) {
-            case 'c':
-            {
+        case 'c': {
                 *(char *)vvp = *buf++;
                 ret++;
                 break;
             }
-            case 'l':
-            {
+
+        case 'l': {
                 uint32_t *vp = (uint32_t *)vvp;
+
                 if (scan_digits(&buf, vp) < 0) {
                     return -1;
                 }
+
                 ret++;
                 break;
             }
-            case 's':
-            {
+
+        case 's': {
                 char *vp = (char *)vvp;
                 size_t len = va_arg(ap, size_t);
+
                 if (len < 1) {
                     return -1;
                 }
+
                 unsigned index = 0;
+
                 for (;;) {
                     if ((*buf == 0) || ISSPACE(*buf)) {
                         break;
                     }
+
                     char c = *buf++;
+
                     if ((index + 1) < len) {
                         vp[index++] = c;
                     }
                 }
+
                 vp[index] = '\0';
                 ret++;
                 break;
             }
-            default:
-                if (*buf++ != c) {
-                    return -1;
-                }
-                break;
+
+        default:
+            if (*buf++ != c) {
+                return -1;
+            }
+
+            break;
         }
     }
+
     return ret;
 }

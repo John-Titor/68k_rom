@@ -6,7 +6,7 @@
 #include "regs.h"
 
 void
-init_cons(void)
+init_cons()
 {
     DUART_CRA = DUART_CR_MRRST;
     DUART_MRA = DUART_MR1_8BIT | DUART_MR1_NO_PARITY | DUART_MR1_RTS;
@@ -19,8 +19,10 @@ init_cons(void)
 void
 cons_putc(char c)
 {
-    if (c == '\n')
+    if (c == '\n') {
         cons_putc('\r');
+    }
+
     for (;;) {
         if (DUART_SRA & DUART_SR_TRANSMITTER_READY) {
             DUART_TBA = c;
@@ -30,7 +32,7 @@ cons_putc(char c)
 }
 
 int
-cons_getc(void)
+cons_getc()
 {
     return (DUART_SRA & DUART_SR_RECEIVER_READY) ? DUART_RBA : -1;
 }

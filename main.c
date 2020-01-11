@@ -8,8 +8,8 @@
 #define XSTR(_x) STR(_x)
 static const char *banner = "68k monitor " XSTR(GITHASH);
 
-void 
-main(void)
+void
+main()
 {
     // initialize things
     init_led();
@@ -22,13 +22,16 @@ main(void)
         puts("] ");
         char *cmd;
         int ret = -1;
+
         if ((cmd = gets()) != NULL) {
             for (cmd_handler_fn *cfp = &__commands; cfp < &__commands_end; cfp++) {
                 ret = (*cfp)(cmd);
+
                 if (ret >= 0) {
                     break;
                 }
             }
+
             if (ret < 0) {
                 putln("ERROR");
             }
@@ -44,6 +47,7 @@ cmd_help(const char *input_buffer)
     if (scan(input_buffer, "help") < 0) {
         return -1;
     }
+
     puts(
         "Commands:\n"
         "=========\n"

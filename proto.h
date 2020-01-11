@@ -14,7 +14,10 @@ extern void led(char c);
 
 extern void init_cons();
 extern void cons_putc(char c);
-extern int cons_getc(void);
+extern int cons_getc();
+
+extern void init_cf();
+extern void *cf_read(uint32_t lba);
 
 typedef int (*cmd_handler_fn)(const char *input_buffer);
 #define COMMAND(handler_function)                               \
