@@ -27,7 +27,6 @@
 #define IDE_LBA_3               REG8(IDE_BASE + 0x0d)
 #define IDE_LBA_3_DEV1              0x10
 #define IDE_LBA_3_LBA               0xe0    // incl. bits 7/5 for compat
-#define IDE_MAXLBA                  0x3fffffff
 #define IDE_STATUS              REG8(IDE_BASE + 0x0f)
 #define IDE_STATUS_ERR              0x01
 #define IDE_STATUS_DRQ              0x08

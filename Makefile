@@ -33,7 +33,7 @@ OPTS			 = -I$(COMPILER_INCLUDES) \
 
 CSRCS			:= $(wildcard *.c)
 ASRCS			:= $(wildcard *.S)
-LIBSRCS			:= $(wildcard newlib/*.c) $(wildcard newlib/*.S)
+LIBSRCS			:= $(wildcard newlib/*.c) $(wildcard newlib/*.S) $(wildcard pffs/*.c)
 HDRS			:= $(wildcard *.h)
 
 ALL_SRCS		:= $(CSRCS) $(ASRCS) $(LIBSRCS)

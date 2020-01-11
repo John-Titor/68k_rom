@@ -40,14 +40,34 @@ cons_test()
 static void
 cf_test()
 {
-    putln("CF read LBA 0...");
-    void *buf = cf_read(0);
-
-    if (buf) {
-        hexdump((uintptr_t)buf, 0, 512, 'b');
+    if (init_cf() < 0) {
+        putln("CF init fail");
     } else {
-        putln("CF read failed (no device?)");
+        putln("CF read LBA 0...");
+        void *buf = cf_read(0);
+
+        if (buf) {
+            hexdump((uintptr_t)buf, 0, CF_SECTOR_SIZE, 'b');
+        } else {
+            putln("CF read failed");
+        }
     }
+}
+
+static void
+fs_test()
+{
+    char buf[100];
+    int len;
+
+    len = fs_read("TOS.SYS", buf, 99);
+    if ((len < 0) || (len > 99)) {
+        putln("FS: read failed");
+    } else {
+        buf[len] = '\0';
+        fmt("FS: read '%s'\n", buf);
+    }
+
 }
 
 #ifdef TEST
@@ -63,6 +83,7 @@ cmd_test(const char *input_buffer)
 
     cons_test();
     cf_test();
+    fs_test();
     // XXX add more tests
 
     return 0;

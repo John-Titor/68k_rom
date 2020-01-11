@@ -1,15 +1,33 @@
-
 /*
  * Mini C library
  */
+
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
+
 extern size_t strlen(const char *s);
 extern int strcmp(const char *s1, const char *s2);
 extern int strncmp(const char *s1, const char *s2, size_t n);
+extern int strncasecmp(const char *s1, const char *s2, size_t n);
 extern void *memset(void *b, int c, size_t len);
 extern void *memcpy(void *restrict dst, const void *restrict src, size_t len);
-
+extern int memcmp(const void *s1, const void *s2, size_t n);
 extern void putc(char c);
 extern int getc();
+
+static inline uint16_t swap16(uint16_t val)
+{
+    __asm__ volatile("rolw #8,%0" : "=d"(val) : "0"(val));
+    return val;
+}
+
+static inline uint32_t swap32(uint32_t val)
+{
+    __asm__ volatile("rolw #8,%0; swap %0; rolw #8,%0" : "=d"(val) : "0"(val));
+    return val;
+}
 
 /**
  * @brief      print a string to the console

@@ -2,14 +2,12 @@ Tasks:
   ✔ REPL command support @done (20-01-09 22:30)
     ✔ help @done (20-01-09 22:30)
     ✔ memory dumper @done (20-01-09 22:30)
-  ☐ CF driver
-    ☐ init
-    ☐ block read
-  ☐ filesystem reader
-    ☐ raw FAT16 / ExFAT disk
-    ☐ MBR
-    ☐ locate file in root directory (8.3 naming)
-    ☐ read file into memory
+  ✔ CF driver @done (20-01-11 10:01)
+    ✔ init @done (20-01-11 10:01)
+    ✔ block read @done (20-01-11 10:01)
+  ✔ filesystem reader @done (20-01-11 13:58)
+    ✔ ChaN PFFS @done (20-01-11 13:58)
+    ✔ read file into memory @done (20-01-11 13:58)
   ☐ I2C read/write
     ☐ utility command
     ☐ read/write EEPROM
@@ -17,7 +15,7 @@ Tasks:
     
   selftest commands:
     ☐ exception generator
-    ☐ disk reader
+    ☐ disk exerciser
     ☐ memory exerciser
 
 Things to fix:

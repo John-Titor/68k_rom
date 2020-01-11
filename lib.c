@@ -44,6 +44,50 @@ strncmp(const char *s1, const char *s2, size_t n)
     return 0;
 }
 
+#define UPPER(_c) ((((_c) >= 'a') && ((_c) <= 'z')) ? (_c) + 'A' - 'a' : (_c))
+int strncasecmp(const char *s1, const char *s2, size_t n)
+{
+    while (n--) {
+        char c1 = *s1++;
+        char c2 = *s2++;
+
+        c1 = UPPER(c1);
+        c2 = UPPER(c2);
+
+        if (c1 < c2) {
+            return -1;
+        }
+
+        if (c1 > c2) {
+            return 1;
+        }
+
+        if (c1 == 0) {
+            return 0;
+        }
+    }
+
+    return 0;
+}
+
+int
+memcmp(const void *s1, const void *s2, size_t n)
+{
+    while (n--) {
+        char c1 = *(const char *)s1++;
+        char c2 = *(const char *)s2++;
+
+        if (c1 < c2) {
+            return -1;
+        }
+
+        if (c1 > c2) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 void
 putc(char c)
 {

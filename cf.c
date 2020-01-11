@@ -1,20 +1,14 @@
 #include "proto.h"
 #include "regs.h"
 
-#define SECTOR_SIZE     512
-#define SECTOR_WORDS    (SECTOR_SIZE / 2)
+#define SECTOR_WORDS    (CF_SECTOR_SIZE / 2)
 
 static uint16_t  cf_sector_buffer[SECTOR_WORDS];
-static bool cf_detected = false;
+static uint32_t cf_total_sectors = 0;
 
 static int
 cf_command(uint8_t command, uint32_t lba, uint8_t count)
 {
-    if ((!cf_detected)
-            || (lba > IDE_MAXLBA)) {
-        return -1;
-    }
-
     // XXX check BSY here
 
     IDE_LBA_3 = ((lba >> 24) & 0x3f) | IDE_LBA_3_LBA;
@@ -43,14 +37,17 @@ cf_sector_in()
 {
     // read and unswap bytes
     for (unsigned idx = 0; idx < SECTOR_WORDS; idx++) {
-        uint16_t bytes = IDE_DATA16;
-        cf_sector_buffer[idx] = (bytes >> 8) | (bytes << 8);   // optimizes to ROR.W #8
+        cf_sector_buffer[idx] = swap16(IDE_DATA16);
     }
 }
 
 void *
 cf_read(uint32_t lba)
 {
+    if (lba >= cf_total_sectors) {
+        return NULL;
+    }
+
     switch (cf_command(IDE_CMD_READ_SECTORS, lba, 1)) {
     case 0:
         cf_sector_in();
@@ -65,22 +62,14 @@ cf_read(uint32_t lba)
     }
 }
 
-void
+int
 init_cf()
 {
     // Tiny68k doesn't decode /CS1 so no device control register -> no soft reset
 
-    cf_detected = true;
-
     switch (cf_command(IDE_CMD_IDENTIFY_DEVICE, 0, 0)) {
-    case -1:
-        putln("CF: no device");
-        cf_detected = false;
-        break;
-
     case 0:
         cf_sector_in();
-        hexdump((uintptr_t)cf_sector_buffer, 0, SECTOR_SIZE, 1);
         puts("CF: ");
         char *p = (char *) & (cf_sector_buffer[27]);
         unsigned len = 40;
@@ -89,12 +78,16 @@ init_cf()
             putc(*p++);
         }
 
-        putc('\n');
-        break;
+        cf_total_sectors = cf_sector_buffer[60] + (cf_sector_buffer[61] << 16);
+        fmt(" %u sectors\n", cf_total_sectors);
+        return 0;
+
+    case -1:
+        putln("CF: no device");
+        return -1;
 
     default:
         fmt("CF: IDENTIFY error 0x%b\n", IDE_ERROR);
-        cf_detected = false;
-        break;
+        return -1;
     }
 }

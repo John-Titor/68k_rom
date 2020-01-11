@@ -16,7 +16,7 @@ main()
     init_cons();
     led('1');
     fmt("%s\ntry 'help'\n", banner);
-    init_cf();
+    init_fs();
 
     // REPL
     for (;;) {

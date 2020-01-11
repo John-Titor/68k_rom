@@ -2,11 +2,6 @@
  * Function prototypes
  */
 
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-
 #include "lib.h"
 
 extern void init_led();
@@ -16,12 +11,13 @@ extern void init_cons();
 extern void cons_putc(char c);
 extern int cons_getc();
 
-extern void init_cf();
+#define CF_SECTOR_SIZE     512
+extern int init_cf();
+extern uint32_t cf_size();
 extern void *cf_read(uint32_t lba);
 
-extern void init_fs();
-extern int fs_open(const char *filename);
-extern int fs_read(uint32_t offset, size_t len);
+extern int init_fs();
+extern int fs_read(const char *name, void *buffer, size_t buffer_size);
 
 typedef int (*cmd_handler_fn)(const char *input_buffer);
 #define COMMAND(handler_function)                               \
