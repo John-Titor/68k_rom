@@ -1,5 +1,5 @@
 /*
- * Emulator-friendly trace messages 
+ * Emulator-friendly trace messages
  */
 #include "proto.h"
 

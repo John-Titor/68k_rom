@@ -3,6 +3,7 @@
 TOOL_PREFIX		 = /Volumes/CTNG/dst/bin/m68k-unknown-elf-
 CC			 = $(TOOL_PREFIX)cc
 OBJCOPY			 = $(TOOL_PREFIX)objcopy
+SIZE			 = $(TOOL_PREFIX)size
 LINKER_SCRIPT		 = tiny68k.ld
 PRODUCT			 = rom
 BINARY			 = $(PRODUCT).bin
@@ -44,6 +45,7 @@ $(BINARY): $(ELF)
 
 $(ELF): $(CSRCS) $(ASRCS) $(HDRS) $(LINKER_SCRIPT) $(MAKEFILE_LIST)
 	$(CC) $(OPTS) -T $(LINKER_SCRIPT) -o $@ $(ALL_SRCS) $(LIBGCC)
+	$(SIZE) $@
 
 clean:
 	rm -f $(BINARY) $(ELF) $(MAP)

@@ -1,9 +1,10 @@
 /*
- * Register layout for Tiny68K
+ * Board support for Tiny68K
  */
+
 #include <stdint.h>
 
-#define RAM_END                 0xff8000
+#include "proto.h"
 
 #define REG8(_adr)      (*(volatile uint8_t *)(_adr))
 #define REG16(_adr)     (*(volatile uint16_t *)(_adr))
@@ -97,7 +98,6 @@
 #define DUART_IVR               REG8(DUART_BASE + 0x19)
 #define DUART_IPR               REG8(DUART_BASE + 0x1b)
 #define DUART_OPCR              REG8(DUART_BASE + 0x1b)
-#define DUART_OPCR_7SEG             0x00
 #define DUART_STARTCC           REG8(DUART_BASE + 0x1d)
 #define DUART_OPRSET            REG8(DUART_BASE + 0x1d)
 #define DUART_STOPCC            REG8(DUART_BASE + 0x1f)
@@ -123,3 +123,170 @@
 #define LED_SEG_F                   (1U << 6)
 #define LED_SEG_G                   (1U << 7)
 #define LED_DATA(_x)                ((_x) << 1)
+
+
+/**********************************************************************
+ * board_init
+ */
+void
+board_init()
+{
+    /* configure for driving LEDs */
+    DUART_OPCR = 0;
+    board_status(0);
+
+    // baudrate set 1, timer mode, CLK/16
+    DUART_ACR = DUART_ACR_MODE_TMR_XTAL16;
+
+    // mask interrupts
+    DUART_IMR = 0;
+
+    // pick a vector
+    DUART_IVR = 64;
+
+    // channel A, 9600,n81
+    DUART_CRA = DUART_CR_MRRST;
+    DUART_MRA = DUART_MR1_8BIT | DUART_MR1_NO_PARITY | DUART_MR1_RTS;
+    DUART_MRA = DUART_MR2_CTS_ENABLE_TX | DUART_MR2_1STOP;
+    DUART_CSRA = DUART_CSR_38400B;
+    DUART_CRA = DUART_CR_TXRST | DUART_CR_TXEN;
+    DUART_CRA = DUART_CR_RXRST | DUART_CR_RXEN;
+
+    // 10ms tick
+    DUART_CTLR = 0x80;
+    DUART_CTUR = 0x04;
+
+    // clear any pending interrupt
+    (void)DUART_STOPCC;
+
+    // interrupts enabled
+    DUART_IMR = DUART_INT_CTR;
+
+}
+
+/**********************************************************************
+ * board_deinit
+ */
+void
+board_deinit()
+{
+    // mask interrupts
+    DUART_IMR = 0;
+
+    // XXX could wait to drain TXA
+}
+
+/**********************************************************************
+ * board_status
+ */
+static const uint8_t led7_tab[] = {
+    /* 0 */ LED_SEG_A | LED_SEG_B | LED_SEG_C | LED_SEG_D | LED_SEG_E | LED_SEG_F |         0,
+    /* 1 */         0 | LED_SEG_B | LED_SEG_C |         0 |         0 |         0 |         0,
+    /* 2 */ LED_SEG_A | LED_SEG_B |         0 | LED_SEG_D | LED_SEG_E |         0 | LED_SEG_G,
+    /* 3 */ LED_SEG_A | LED_SEG_B | LED_SEG_C | LED_SEG_D |         0 |         0 | LED_SEG_G,
+    /* 4 */         0 | LED_SEG_B | LED_SEG_C |         0 |         0 | LED_SEG_F | LED_SEG_G,
+    /* 5 */ LED_SEG_A |         0 | LED_SEG_C | LED_SEG_D |         0 | LED_SEG_F | LED_SEG_G,
+    /* 6 */ LED_SEG_A |         0 | LED_SEG_C | LED_SEG_D | LED_SEG_E | LED_SEG_F | LED_SEG_G,
+    /* 7 */ LED_SEG_A | LED_SEG_B | LED_SEG_C |         0 |         0 |         0 |         0,
+    /* 8 */ LED_SEG_A | LED_SEG_B | LED_SEG_C | LED_SEG_D | LED_SEG_E | LED_SEG_F | LED_SEG_G,
+    /* 9 */ LED_SEG_A | LED_SEG_B | LED_SEG_C | LED_SEG_D |         0 | LED_SEG_F | LED_SEG_G,
+    /* A */ LED_SEG_A | LED_SEG_B | LED_SEG_C |         0 | LED_SEG_E | LED_SEG_F | LED_SEG_G,
+    /* b */         0 |         0 | LED_SEG_C | LED_SEG_D | LED_SEG_E | LED_SEG_F | LED_SEG_G,
+    /* c */         0 |         0 |         0 | LED_SEG_D | LED_SEG_E |         0 | LED_SEG_G,
+    /* d */         0 | LED_SEG_B | LED_SEG_C | LED_SEG_D | LED_SEG_E |         0 | LED_SEG_G,
+    /* E */ LED_SEG_A |         0 |         0 | LED_SEG_D | LED_SEG_E | LED_SEG_F | LED_SEG_G,
+    /* F */ LED_SEG_A |         0 |         0 |         0 | LED_SEG_E | LED_SEG_F | LED_SEG_G,
+    /* g */ LED_SEG_A | LED_SEG_B | LED_SEG_C | LED_SEG_D |         0 | LED_SEG_F | LED_SEG_G,
+    /* H */         0 | LED_SEG_B | LED_SEG_C |         0 | LED_SEG_E | LED_SEG_F | LED_SEG_G,
+    /* - */         0 |         0 |         0 |         0 |         0 |         0 | LED_SEG_G,
+    /* ? */ LED_SEG_A | LED_SEG_B |         0 |         0 | LED_SEG_E |         0 | LED_SEG_G,
+};
+
+void
+board_status(uint8_t code)
+{
+    if (code < sizeof(led7_tab)) {
+        LED_DATA_CLR = 0xff;
+        LED_DATA_SET = led7_tab[code];
+    }
+}
+
+/**********************************************************************
+ * board_putc
+ */
+void
+board_putc(char c)
+{
+    if (c == '\n') {
+        board_putc('\r');
+    }
+
+    for (;;) {
+        if (DUART_SRA & DUART_SR_TRANSMITTER_READY) {
+            DUART_TBA = c;
+            break;
+        }
+    }
+}
+
+/**********************************************************************
+ * board_getc
+ */
+int
+board_getc()
+{
+    return (DUART_SRA & DUART_SR_RECEIVER_READY) ? DUART_RBA : -1;
+}
+
+/**********************************************************************
+ * board_diskread
+ */
+
+int
+board_diskread(void *buffer, uint32_t lba)
+{
+    // XXX should check for busy here?
+
+    IDE_LBA_3 = ((lba >> 24) & 0x3f) | IDE_LBA_3_LBA;
+    IDE_LBA_2 = (lba >> 16) & 0xff;
+    IDE_LBA_1 = (lba >> 8) & 0xff;
+    IDE_LBA_0 = lba & 0xff;
+    IDE_SECTOR_COUNT = 1;
+    IDE_COMMAND = IDE_CMD_READ_SECTORS;
+
+    // XXX timeout
+    for (;;) {
+        uint8_t status = IDE_STATUS;
+
+        if (status & IDE_STATUS_ERR) {
+            fmt("CF: READ error 0x%b\n", IDE_ERROR);
+            return -1;
+        }
+
+        if (status & IDE_STATUS_DRQ) {
+            uint16_t *bp = (uint16_t *)buffer;
+
+            for (unsigned idx = 0; idx < DISK_SECTOR_SIZE; idx += 2) {
+                *bp++ = swap16(IDE_DATA16);
+            }
+
+            return 0;
+        }
+    }
+
+}
+
+/**********************************************************************
+ * interrupt handlers
+ */
+INTERRUPT_HANDLER
+void
+__vector_64(void)
+{
+    uint8_t stat = DUART_ISR;
+
+    if (stat & DUART_INT_CTR) {
+        (void)DUART_STOPCC;
+        timer_tick();
+    }
+}

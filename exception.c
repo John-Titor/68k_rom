@@ -10,42 +10,33 @@ unhandled_exception(registers_t regs __attribute((unused)))
     putln("unhandled exception");
 }
 
-COMMAND(cmd_exception);
+#define set_sr(a)                         \
+__extension__                             \
+({short _r, _a = (a);                     \
+  __asm__ volatile                        \
+  ("move.w %%sr,%0\n\t"                   \
+   "move.w %1,%%sr"                       \
+  : "=&d"(_r)        /* outputs */        \
+  : "nd"(_a)         /* inputs  */        \
+  : "cc", "memory"   /* clobbered */      \
+  );                                      \
+  _r;                                     \
+})
 
-static int
-cmd_exception(const char *input_buffer)
+uint16_t
+interrupt_disable()
 {
-    uint16_t trap_number;
+    return set_sr(0x2700);
+}
 
-    if (scan(input_buffer, "trap %w", &trap_number) == 1) {
-        switch (trap_number) {
-#define TRAP(_x)    case _x: __asm__ volatile ("trap #" #_x ); break
-            TRAP(0);
-            TRAP(1);
-            TRAP(2);
-            TRAP(3);
-            TRAP(4);
-            TRAP(5);
-            TRAP(6);
-            TRAP(7);
-            TRAP(8);
-            TRAP(9);
-            TRAP(10);
-            TRAP(11);
-            TRAP(12);
-            TRAP(13);
-            TRAP(14);
-            TRAP(15);
+void
+interrupt_enable()
+{
+    set_sr(0x2000);
+}
 
-        default:
-            return -1;
-        }
-    }
-
-    if (!strncmp(input_buffer, "reset", 5)) {
-        __asm__ volatile("reset");
-        return 0;
-    }
-
-    return -1;
+void
+interrupt_restore(uint16_t state)
+{
+    set_sr(state);
 }

@@ -9,35 +9,20 @@
 static const char *banner = "68k monitor " XSTR(GITHASH);
 
 void
-init_all()
-{
-    // initialize things
-    init_trace();
-    init_led();
-//    init_timer();
-    init_cons();
-    led('1');
-    init_fs();
-}
-
-void
-deinit_all()
-{
-    // quiesce the system for boot
-//    deinit_timer();
-    deinit_cons();
-}
-
-void
 main()
 {
-    init_all();
+    // initialize things
+    board_init();
+    interrupt_enable();
 
-    trace_puts(banner); trace_puts("\n");
+    // signs of life
+    trace_puts(banner);
+    trace_puts("\n");
     fmt("%s\ntry 'help'\n", banner);
- 
+
     // REPL
     for (;;) {
+        board_status(1);
         puts("] ");
         char *cmd;
         int ret = -1;
@@ -46,6 +31,7 @@ main()
             if (strlen(cmd) == 0) {
                 continue;
             }
+
             for (cmd_handler_fn *cfp = &__commands; cfp < &__commands_end; cfp++) {
                 ret = (*cfp)(cmd);
 
@@ -70,16 +56,12 @@ cmd_help(const char *input_buffer)
         return -1;
     }
 
-    puts(
-        "Commands:\n"
-        "=========\n"
-        "md.[bwl] [address [length]]   dump bytes/words/longs\n"
-        "reset                         reset peripherals\n"
-#ifdef TEST
-        "tests                         run unit tests\n"
-#endif
-        "\n^K clears input line\n"
-        "^C aborts input\n\n"
-    );
+    puts("\n^K clears input line\n"
+         "^C aborts input\n\n"
+         "Commands:\n"
+         "=========\n");
+    for (cmd_handler_fn *cfp = &__commands; cfp < &__commands_end; cfp++) {
+        (*cfp)(NULL);
+    }
     return 0;
 }

@@ -3,31 +3,24 @@
  */
 
 #include "lib.h"
+#include "board.h"
 
-extern void init_all();
-extern void deinit_all();
-
-extern void init_led();
-extern void led(char c);
-
-extern void init_cons();
-extern void deinit_cons();
-extern void cons_putc(char c);
-extern int cons_getc();
+extern uint16_t interrupt_disable();
+extern void interrupt_enable();
+extern void interrupt_restore(uint16_t state);
 
 extern void init_trace();
 extern void trace_puts(const char *s);
 
-extern void init_timer();
-extern void deinit_timer();
-extern uint32_t timer_get_time();
+extern void timer_tick();
+extern uint32_t timer_get_ticks();
 
-#define CF_SECTOR_SIZE     512
 extern int init_cf();
 extern uint32_t cf_size();
 extern void *cf_read(uint32_t lba);
 
 extern int init_fs();
+extern size_t fs_filesize(const char *name);
 extern int fs_read(const char *name, void *buffer, size_t buffer_size);
 
 typedef int (*cmd_handler_fn)(const char *input_buffer);
@@ -38,3 +31,7 @@ typedef int (*cmd_handler_fn)(const char *input_buffer);
     __attribute__((used))                                       \
     cmd_handler_fn cmdptr_ ## handler_function = handler_function;
 extern cmd_handler_fn   __commands, __commands_end;
+
+#define INTERRUPT_HANDLER                           \
+    __attribute__((interrupt))                      \
+    __attribute__((section("INTERRUPT_HANDLERS")))

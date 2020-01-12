@@ -3,7 +3,8 @@
 /*-----------------------------------------------------------------------*/
 
 #include "diskio.h"
-#include "../proto.h"
+#include "../board.h"
+#include "../lib.h"
 
 
 /*-----------------------------------------------------------------------*/
@@ -12,7 +13,7 @@
 
 DSTATUS disk_initialize (void)
 {
-	return init_cf() ? RES_ERROR : RES_OK;
+	return RES_OK;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -26,10 +27,16 @@ DRESULT disk_readp (
 	UINT count		/* Byte count (bit15:destination) */
 )
 {
-	BYTE *sector_buffer = (BYTE *)cf_read(sector);
-	if (sector_buffer == NULL) {
-		return RES_ERROR;
+	static uint8_t sector_buffer[DISK_SECTOR_SIZE];
+	static DWORD cached_sector = ~0;
+
+	if (sector != cached_sector) {
+		if (board_diskread(sector_buffer, sector) < 0) {
+			return RES_ERROR;
+		}
+		cached_sector = sector;
 	}
+
 	memcpy(buff, sector_buffer + offset, count);
 	return RES_OK;
 }

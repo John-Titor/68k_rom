@@ -10,6 +10,8 @@
      */
     .global __reset
 __reset:
+    move.w #0x2700, %sr     /* make sure interrupts are off */
+
     /* set up a stack frame */
     link    %fp, #-8
 

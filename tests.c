@@ -40,51 +40,31 @@ cons_test()
 static void
 cf_test()
 {
-    if (init_cf() < 0) {
-        putln("CF init fail");
+    char sector_buffer[DISK_SECTOR_SIZE];
+
+    putln("Disk read LBA 0...");
+
+    if (board_diskread(sector_buffer, 0) >= 0) {
+
+        hexdump((uintptr_t)sector_buffer, 0, DISK_SECTOR_SIZE, 'b');
     } else {
-        putln("CF read LBA 0...");
-        void *buf = cf_read(0);
-
-        if (buf) {
-            hexdump((uintptr_t)buf, 0, CF_SECTOR_SIZE, 'b');
-        } else {
-            putln("CF read failed");
-        }
+        putln("Disk read failed");
     }
-}
-
-static void
-fs_test()
-{
-    char buf[100];
-    int len;
-
-    len = fs_read("TOS.SYS", buf, 99);
-    if ((len < 0) || (len > 99)) {
-        putln("FS: read failed");
-    } else {
-        buf[len] = '\0';
-        fmt("FS: read '%s'\n", buf);
-    }
-
 }
 
 #ifdef TEST
 COMMAND(cmd_test);
-#endif
 
 static int
 cmd_test(const char *input_buffer)
 {
-    if (scan(input_buffer, "test") < 0) {
-        return -1;
+    if (input_buffer == NULL) {
+        putln("test                              run unit tests");
+    } else if (!strncmp(input_buffer, "test", 4)) {
+        cons_test();
+        cf_test();
+        return 0;
     }
-
-    cons_test();
-    cf_test();
-    fs_test();
-    // XXX add more tests
-
-    return 0;
+    return -1;
 }
+#endif

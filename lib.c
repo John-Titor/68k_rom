@@ -44,15 +44,14 @@ strncmp(const char *s1, const char *s2, size_t n)
     return 0;
 }
 
-#define UPPER(_c) ((((_c) >= 'a') && ((_c) <= 'z')) ? (_c) + 'A' - 'a' : (_c))
 int strncasecmp(const char *s1, const char *s2, size_t n)
 {
     while (n--) {
-        char c1 = *s1++;
-        char c2 = *s2++;
+        char c1 = toupper(*s1++);
+        char c2 = toupper(*s2++);
 
-        c1 = UPPER(c1);
-        c2 = UPPER(c2);
+        c1 = toupper(c1);
+        c2 = toupper(c2);
 
         if (c1 < c2) {
             return -1;
@@ -85,19 +84,20 @@ memcmp(const void *s1, const void *s2, size_t n)
             return 1;
         }
     }
+
     return 0;
 }
 
 void
 putc(char c)
 {
-    cons_putc(c);
+    board_putc(c);
 }
 
 int
 getc()
 {
-    return cons_getc();
+    return board_getc();
 }
 
 void
@@ -175,7 +175,7 @@ gets()
 
 static const char *hextab = "0123456789abcdef";
 
-void
+static void
 putx(uint32_t value, size_t len)
 {
     unsigned shifts = len * 2;
@@ -193,7 +193,7 @@ putx(uint32_t value, size_t len)
     puts(p);
 }
 
-void
+static void
 putd(uint32_t value)
 {
     if (value == 0) {
@@ -267,6 +267,22 @@ hexdump(uintptr_t addr, uintptr_t address, size_t length, char width)
     return length;
 }
 
+/**
+ * @brief      printf-style output formatter
+ *
+ * Supports:
+ *  %c      character (char)
+ *  %d      signed decimal integer (int)
+ *  %u      unsigned decimal integer (unsigned int)
+ *  %p      pointer (32-bit hex) (const void *)
+ *  %b      hex byte (uint8_t)
+ *  %w      hex word (uint16_t)
+ *  %l      hex long (uint32_t)
+ *  %s      string (const char *)
+ *
+ * @param[in]  format     format string
+ * @param[in]  <unnamed>  format string arguments
+ */
 void
 fmt(const char *format, ...)
 {
@@ -415,8 +431,20 @@ scan_digits(const char **bp, uint32_t *result)
     return 0;
 }
 
-#define ISSPACE(_x) (((_x) == ' ') || ((_x) == '\t'))
-
+/**
+ * @brief      scanf-style input scanner
+ *
+ * Supports:
+ *  %c      character (char *)
+ *  %l      unsigned number, decimal or hex with preceding 0x (uint32_t *)
+ *  %s      string, needs 2 args, pointer & max length (char *, size_t)
+ *
+ * @param[in]  buf        buffer to scan
+ * @param[in]  format     format string
+ * @param[in]  <unnamed>  format string arguments
+ *
+ * @return     the number of arguments converted, or -1 on error
+ */
 int
 scan(const char *buf, const char *format, ...)
 {
@@ -435,8 +463,8 @@ scan(const char *buf, const char *format, ...)
 
         if (!dofmt) {
             // any space in the format discards space in the buffer
-            if (ISSPACE(c)) {
-                while (ISSPACE(*buf)) {
+            if (isspace(c)) {
+                while (isspace(*buf)) {
                     buf++;
                 }
 
@@ -458,7 +486,7 @@ scan(const char *buf, const char *format, ...)
         dofmt = false;
 
         // leading whitespace before conversions is always discarded
-        while (ISSPACE(*buf)) {
+        while (isspace(*buf)) {
             buf++;
         }
 
@@ -497,7 +525,7 @@ scan(const char *buf, const char *format, ...)
                 unsigned index = 0;
 
                 for (;;) {
-                    if ((*buf == 0) || ISSPACE(*buf)) {
+                    if ((*buf == 0) || isspace(*buf)) {
                         break;
                     }
 
