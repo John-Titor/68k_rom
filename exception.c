@@ -11,17 +11,17 @@ unhandled_exception(registers_t regs __attribute((unused)))
 }
 
 #define set_sr(a)                         \
-__extension__                             \
-({short _r, _a = (a);                     \
-  __asm__ volatile                        \
-  ("move.w %%sr,%0\n\t"                   \
-   "move.w %1,%%sr"                       \
-  : "=&d"(_r)        /* outputs */        \
-  : "nd"(_a)         /* inputs  */        \
-  : "cc", "memory"   /* clobbered */      \
-  );                                      \
-  _r;                                     \
-})
+    __extension__                             \
+    ({short _r, _a = (a);                     \
+        __asm__ volatile                        \
+        ("move.w %%sr,%0\n\t"                   \
+         "move.w %1,%%sr"                       \
+         : "=&d"(_r)        /* outputs */        \
+         : "nd"(_a)         /* inputs  */        \
+         : "cc", "memory"   /* clobbered */      \
+        );                                      \
+        _r;                                     \
+    })
 
 uint16_t
 interrupt_disable()

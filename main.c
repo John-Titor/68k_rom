@@ -6,7 +6,14 @@
 
 #define STR(_x) #_x
 #define XSTR(_x) STR(_x)
-static const char *banner = "68k monitor " XSTR(GITHASH);
+static const char *banner = "68k monitor " XSTR(GITHASH) "\n";
+
+static void cmd_execute(const char *cmd);
+static void cmd_script(const char *script);
+
+static const char *auto_script =
+//    "emutos"
+    "\0";
 
 void
 main()
@@ -17,33 +24,51 @@ main()
 
     // signs of life
     trace_puts(banner);
-    trace_puts("\n");
-    fmt("%s\ntry 'help'\n", banner);
+    putln(banner);
+
+    cmd_script(auto_script);
 
     // REPL
+    putln("\ntry 'help'");
+
     for (;;) {
         board_status(1);
         puts("] ");
         char *cmd;
-        int ret = -1;
 
         if ((cmd = gets()) != NULL) {
-            if (strlen(cmd) == 0) {
-                continue;
-            }
+            cmd_execute(cmd);
+        }
+    }
+}
 
-            for (cmd_handler_fn *cfp = &__commands; cfp < &__commands_end; cfp++) {
-                ret = (*cfp)(cmd);
+static void
+cmd_execute(const char *cmd)
+{
+    int ret = -1;
 
-                if (ret >= 0) {
-                    break;
-                }
-            }
+    if (strlen(cmd) > 0) {
+        for (cmd_handler_fn *cfp = &__commands; cfp < &__commands_end; cfp++) {
+            ret = (*cfp)(cmd);
 
-            if (ret < 0) {
-                putln("ERROR");
+            if (ret >= 0) {
+                break;
             }
         }
+    }
+
+    if (ret < 0) {
+        putln("ERROR");
+    }
+}
+
+static void
+cmd_script(const char *script)
+{
+    while (*script) {
+        fmt("] %s\n", script);
+        cmd_execute(script);
+        script += strlen(script) + 1;
     }
 }
 
@@ -60,8 +85,10 @@ cmd_help(const char *input_buffer)
          "^C aborts input\n\n"
          "Commands:\n"
          "=========\n");
+
     for (cmd_handler_fn *cfp = &__commands; cfp < &__commands_end; cfp++) {
         (*cfp)(NULL);
     }
+
     return 0;
 }

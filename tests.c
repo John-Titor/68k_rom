@@ -65,6 +65,7 @@ cmd_test(const char *input_buffer)
         cf_test();
         return 0;
     }
+
     return -1;
 }
 #endif

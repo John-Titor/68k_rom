@@ -170,10 +170,12 @@ board_init()
 void
 board_deinit()
 {
+    // XXX could wait to drain TXA?
+
+    interrupt_disable();
+
     // mask interrupts
     DUART_IMR = 0;
-
-    // XXX could wait to drain TXA
 }
 
 /**********************************************************************
