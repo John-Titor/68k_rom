@@ -4,12 +4,23 @@
 
 #include "lib.h"
 
+extern void init_all();
+extern void deinit_all();
+
 extern void init_led();
 extern void led(char c);
 
 extern void init_cons();
+extern void deinit_cons();
 extern void cons_putc(char c);
 extern int cons_getc();
+
+extern void init_trace();
+extern void trace_puts(const char *s);
+
+extern void init_timer();
+extern void deinit_timer();
+extern uint32_t timer_get_time();
 
 #define CF_SECTOR_SIZE     512
 extern int init_cf();

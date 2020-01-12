@@ -37,3 +37,13 @@ init_cons()
     DUART_CRA = DUART_CR_RXRST | DUART_CR_RXEN;
 }
 
+void
+deinit_cons()
+{
+    for (;;) {
+        // wait for the last character(s) to go out
+        if (DUART_SRA & DUART_SR_TRANSMITTER_EMPTY) {
+            return;
+        }
+    }
+}

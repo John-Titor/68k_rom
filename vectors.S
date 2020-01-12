@@ -39,3 +39,35 @@ __unhandled_exception:
     movem   %d0-%a6, -(%sp)
     jbsr    unhandled_exception
     bra     .
+
+    /****************************************
+     * emulator trace output
+     */
+    .global trace_check
+    .extern trace_available
+trace_check:
+    move.l  0x28, %a0           /* save old lineA vector */
+    move.l  %sp, %a1            /* save stack pointer */
+    move.l  #1f, 0x28           /* redirect lineA to failure */
+    pea     4f                  /* bogus argument */
+    sub.l   #4, %sp              /* bogus return address */
+    .dc.w   0xa0ff              /* trap */
+    .dc.l   0                   /* compatibility padding */
+    move.l  #1, %d0             /* success */
+    bra     2f
+1:
+    clr.l   %d0                 /* failure */
+2:
+    move.l  %a1, %sp            /* recover stack pointer */
+    move.l  %a0, 0x28           /* restore lineA vector */
+    rts
+
+4:
+    .ascii  "\0"
+    .even
+
+    .global _trace_puts
+_trace_puts:
+    .dc.w   0xa0ff
+    .dc.l   0
+    rts

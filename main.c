@@ -9,15 +9,33 @@
 static const char *banner = "68k monitor " XSTR(GITHASH);
 
 void
-main()
+init_all()
 {
     // initialize things
+    init_trace();
     init_led();
+//    init_timer();
     init_cons();
     led('1');
-    fmt("%s\ntry 'help'\n", banner);
     init_fs();
+}
 
+void
+deinit_all()
+{
+    // quiesce the system for boot
+//    deinit_timer();
+    deinit_cons();
+}
+
+void
+main()
+{
+    init_all();
+
+    trace_puts(banner); trace_puts("\n");
+    fmt("%s\ntry 'help'\n", banner);
+ 
     // REPL
     for (;;) {
         puts("] ");
@@ -25,6 +43,9 @@ main()
         int ret = -1;
 
         if ((cmd = gets()) != NULL) {
+            if (strlen(cmd) == 0) {
+                continue;
+            }
             for (cmd_handler_fn *cfp = &__commands; cfp < &__commands_end; cfp++) {
                 ret = (*cfp)(cmd);
 
