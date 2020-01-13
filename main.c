@@ -48,9 +48,8 @@ cmd_execute(const char *cmd)
     int ret = -1;
 
     if (strlen(cmd) > 0) {
-        for (cmd_handler_fn *cfp = &__commands; cfp < &__commands_end; cfp++) {
+        for (cmd_handler_fn *cfp = &_commands; cfp < &_ecommands; cfp++) {
             ret = (*cfp)(cmd);
-
             if (ret >= 0) {
                 break;
             }
@@ -86,7 +85,7 @@ cmd_help(const char *input_buffer)
          "Commands:\n"
          "=========\n");
 
-    for (cmd_handler_fn *cfp = &__commands; cfp < &__commands_end; cfp++) {
+    for (cmd_handler_fn *cfp = &_commands; cfp < &_ecommands; cfp++) {
         (*cfp)(NULL);
     }
 

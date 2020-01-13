@@ -3,73 +3,86 @@
  */
 
 OUTPUT_ARCH(m68k)
-ENTRY(__reset)
+OUTPUT(elf32-m68k)
+ENTRY(_reset)
 
+/*
+ * 32K of ROM is copied to zero by hardware at startup. 
+ * We leave vectors at zero, but relocate the rest of the
+ * ROM to the end of RAM so that it's possible to upload a
+ * new program at zero.
+ *
+ * Peripherals start at 16M - 32K, so we take 64K below that.
+ */
 MEMORY
 {
     vectors(rw) : ORIGIN = 0, LENGTH = 1K
-    ram(rwx) : ORIGIN = 1K, LENGTH = 16M - 33K
+    loadspace(rw) : ORIGIN = 1K, LENGTH = 31K
+    runspace(rwx) : ORIGIN = 16M - 96K, LENGTH = 64K
 }
-
-STACKSIZE = 1k;
 
 SECTIONS
 {
     .vectors :
     {
         /* lower m68k vectors */
-        LONG(__stacktop)
-        LONG(__reset)
-        LONG(__bus_error)
-        LONG(__address_error)
-        LONG(__illegal_instruction)
-        LONG(__zero_divide)
-        LONG(__chk)
-        LONG(__trapv)
-        LONG(__privilege_violation)
-        LONG(__trace)
-        LONG(__line_a)
-        LONG(__line_f)
+        LONG(_stack_top)
+        LONG(ORIGIN(loadspace))
+        LONG(vector_bus_error)
+        LONG(vector_address_error)
+        LONG(vector_illegal_instruction)
+        LONG(vector_zero_divide)
+        LONG(vector_chk)
+        LONG(vector_trapv)
+        LONG(vector_privilege_violation)
+        LONG(vector_trace)
+        LONG(vector_line_a)
+        LONG(vector_line_f)
         . = 0x3c;
-        LONG(__uninitialized_interrupt)
+        LONG(vector_uninitialized_interrupt)
         . = 0x60;
-        LONG(__spurious_interrupt)
+        LONG(vector_spurious_interrupt)
 
         /* user vectors */
         . = 0x100;
-        LONG(__vector_64)
-        LONG(__vector_65)
-        LONG(__vector_66)
-        LONG(__vector_67)
+        LONG(vector_64)
+        LONG(vector_65)
+        LONG(vector_66)
+        LONG(vector_67)
 
         /* default handlers */
-        PROVIDE(__bus_error             = __unhandled_exception);
-        PROVIDE(__address_error         = __unhandled_exception);
-        PROVIDE(__illegal_instruction   = __unhandled_exception);
-        PROVIDE(__zero_divide           = __unhandled_exception);
-        PROVIDE(__chk                   = __unhandled_exception);
-        PROVIDE(__trapv                 = __unhandled_exception);
-        PROVIDE(__privilege_violation   = __unhandled_exception);
-        PROVIDE(__trace                 = __unhandled_exception);
-        PROVIDE(__line_a                = __unhandled_exception);
-        PROVIDE(__line_f                = __unhandled_exception);
-        PROVIDE(__uninitialized_interrupt = __unhandled_exception);
-        PROVIDE(__spurious_interrupt    = __unhandled_exception);
-        PROVIDE(__vector_64             = __unhandled_exception);
-        PROVIDE(__vector_65             = __unhandled_exception);
-        PROVIDE(__vector_66             = __unhandled_exception);
-        PROVIDE(__vector_67             = __unhandled_exception);
+        PROVIDE(vector_bus_error                = vector_unhandled_exception);
+        PROVIDE(vector_address_error            = vector_unhandled_exception);
+        PROVIDE(vector_illegal_instruction      = vector_unhandled_exception);
+        PROVIDE(vector_zero_divide              = vector_unhandled_exception);
+        PROVIDE(vector_chk                      = vector_unhandled_exception);
+        PROVIDE(vector_trapv                    = vector_unhandled_exception);
+        PROVIDE(vector_privilege_violation      = vector_unhandled_exception);
+        PROVIDE(vector_trace                    = vector_unhandled_exception);
+        PROVIDE(vector_line_a                   = vector_unhandled_exception);
+        PROVIDE(vector_line_f                   = vector_unhandled_exception);
+        PROVIDE(vector_uninitialized_interrupt  = vector_unhandled_exception);
+        PROVIDE(vector_spurious_interrupt       = vector_unhandled_exception);
+        PROVIDE(vector_64                       = vector_unhandled_exception);
+        PROVIDE(vector_65                       = vector_unhandled_exception);
+        PROVIDE(vector_66                       = vector_unhandled_exception);
+        PROVIDE(vector_67                       = vector_unhandled_exception);
 
     } > vectors
 
-    .text :
+    .text ORIGIN(runspace) :
     {
+        *(.entrypoint)
         *(.text .text.*);
         KEEP(*(INTERRUPT_HANDLERS));
         *(.rodata .rodata.*);
+        . = ALIGN(0x4);
+        _commands = .;
+        KEEP(*(COMMANDS))
+        _ecommands = .;
         _etext = .;
         *(.lit);
-    } > ram
+    } > runspace AT> loadspace
     
     .data :
     {
@@ -78,27 +91,20 @@ SECTIONS
         *(.shdata);
         *(.data .data.*);
         . = ALIGN(0x4);
-        PROVIDE(__commands = .);
-        KEEP(*(COMMANDS))
-        PROVIDE(__commands_end = .);
         _edata = .;
-    } > ram
+    } > runspace AT> loadspace
 
     .bss :
     {
         . = ALIGN(0x4);
-        __bss_start = .; 
         *(.shbss);
         *(.bss .bss.*);
         *(COMMON);
-        . = ALIGN(0x8);
-        PROVIDE(__stackbot = .);
-        . += STACKSIZE;
-        PROVIDE(__stacktop = .);
-        _end = .;
-        __end = _end;
-    } > ram
-
+        _stack_base = .;
+        . = ORIGIN(runspace) + LENGTH(runspace);
+        _stack_top = .;
+        _ebss = .;
+    } > runspace
 
     .stab 0 (NOLOAD) :
     {
@@ -111,4 +117,9 @@ SECTIONS
     }
 }
 
-ASSERT(_edata <= 32K, "image too large for EEPROM")
+/* parameters for the relocator */
+_reloc_source = ORIGIN(loadspace);
+_reloc_destination = ORIGIN(runspace);
+_reloc_end = ORIGIN(runspace) + LENGTH(runspace);
+
+ASSERT((_stack_top - _stack_base) > 2048, "less than 2K stack available")

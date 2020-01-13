@@ -24,6 +24,7 @@ OPTS			 = -I$(COMPILER_INCLUDES) \
 			   -Wextra \
 			   -Werror \
 			   -Os \
+			   -fomit-frame-pointer \
 			   -ffreestanding \
 			   -nostdinc \
 			   -nostdlib \

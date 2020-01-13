@@ -30,7 +30,7 @@ typedef int (*cmd_handler_fn)(const char *input_buffer);
     __attribute__((section("COMMANDS")))                        \
     __attribute__((used))                                       \
     cmd_handler_fn cmdptr_ ## handler_function = handler_function;
-extern cmd_handler_fn   __commands, __commands_end;
+extern cmd_handler_fn   _commands, _ecommands;
 
 #define INTERRUPT_HANDLER                           \
     __attribute__((interrupt))                      \

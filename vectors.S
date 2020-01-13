@@ -8,24 +8,39 @@
     /****************************************
      * reset entrypoint
      */
-    .global __reset
-__reset:
+    .global _reset
+    .section .entrypoint
+_reset:
     move.w #0x2700, %sr     /* make sure interrupts are off */
+
+    /* copy ourselves to the run area */
+    lea     _reloc_source, %a0
+    lea     _reloc_destination, %a1
+    lea     _reloc_end, %a2
+    jmp     2f
+1:
+    move.l  (%a0)+, (%a1)+
+2:
+    cmp.l   %a1, %a2
+    bne     1b
+
+    /* force a long jump to the run location */
+    lea     3f, %a0
+    jmp     (%a0)
+3:
+
+    /* zero the BSS (always 32-aligned)  */
+    lea     _edata, %a0
+    lea     _ebss, %a1
+    jmp     5f
+4:
+    clrl    (%a0)+
+5:
+    cmp.l   %a0, %a1
+    bne     4b
 
     /* set up a stack frame */
     link    %fp, #-8
-
-    /* zero the BSS (always 32-aligned)  */
-    movel   #__bss_start, %d1
-    movel   #_end, %d0
-    subl    %d1, %d0        /* BSS length */
-    asrl    #2, %d0         /* as 32-bit words */
-    movel   %d1, %a0        /* word to clear */
-    bra     2f
-1:
-    clrl    (%a0)+
-2:
-    dbra    %d1, 1b
 
     /* and call the start routine */
     .extern main
@@ -35,9 +50,11 @@ __reset:
     /****************************************
      * default handler for unexpected exceptions
      */
-    .global __unhandled_exception
+    .section .text
+    .global vector_unhandled_exception
     .extern unhandled_exception
-__unhandled_exception:
+
+vector_unhandled_exception:
     movem   %d0-%a6, -(%sp)
     jbsr    unhandled_exception
     bra     .
@@ -47,6 +64,7 @@ __unhandled_exception:
      */
     .global trace_check
     .extern trace_available
+
 trace_check:
     move.l  0x28, %a0           /* save old lineA vector */
     move.l  %sp, %a1            /* save stack pointer */
@@ -69,6 +87,7 @@ trace_check:
     .even
 
     .global _trace_puts
+
 _trace_puts:
     .dc.w   0xa0ff
     .dc.l   0

@@ -283,7 +283,7 @@ board_diskread(void *buffer, uint32_t lba)
  */
 INTERRUPT_HANDLER
 void
-__vector_64(void)
+vector_64(void)
 {
     uint8_t stat = DUART_ISR;
 
