@@ -7,7 +7,7 @@ typedef __attribute__((noreturn)) void (*entry_function)(void);
 
 static const char *emutos_image_name = "EMUTOS.SYS";
 
-int
+static int
 emutos_load()
 {
     char    *emutos_buffer = (char *)TOS_ROM_BASE;

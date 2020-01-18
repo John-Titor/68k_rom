@@ -4,7 +4,7 @@
 
 OUTPUT_ARCH(m68k)
 OUTPUT(elf32-m68k)
-ENTRY(_reset)
+ENTRY(_reset_vector)
 
 /*
  * 32K of ROM is copied to zero by hardware at startup. 
@@ -21,13 +21,16 @@ MEMORY
     runspace(rwx) : ORIGIN = 16M - 96K, LENGTH = 64K
 }
 
+PROVIDE(_reset_vector = ORIGIN(loadspace));
+
 SECTIONS
 {
     .vectors :
     {
         /* lower m68k vectors */
+        _vector_base = .;
         LONG(_stack_top)
-        LONG(ORIGIN(loadspace))
+        LONG(_reset_vector)
         LONG(vector_bus_error)
         LONG(vector_address_error)
         LONG(vector_illegal_instruction)
@@ -49,6 +52,7 @@ SECTIONS
         LONG(vector_65)
         LONG(vector_66)
         LONG(vector_67)
+        _vector_top = .;
 
         /* default handlers */
         PROVIDE(vector_bus_error                = vector_unhandled_exception);
@@ -72,7 +76,8 @@ SECTIONS
 
     .text ORIGIN(runspace) :
     {
-        *(.entrypoint)
+        _btext = .;
+        KEEP(*(.entrypoint))
         *(.text .text.*);
         KEEP(*(INTERRUPT_HANDLERS));
         *(.rodata .rodata.*);
@@ -100,6 +105,8 @@ SECTIONS
         *(.shbss);
         *(.bss .bss.*);
         *(COMMON);
+        _vector_savearea = .;
+        . += _vector_top - _vector_base;
         _stack_base = .;
         . = ORIGIN(runspace) + LENGTH(runspace);
         _stack_top = .;

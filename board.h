@@ -1,6 +1,7 @@
 /*
  * Board interface
  */
+#pragma once
 
 #include <stdint.h>
 

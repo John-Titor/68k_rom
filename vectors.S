@@ -11,33 +11,35 @@
     .global _reset
     .section .entrypoint
 _reset:
+    reset                   /* reset peripherals */
     move.w #0x2700, %sr     /* make sure interrupts are off */
+    lea     _stack_top, %sp /* ensure stack pointer */
 
     /* copy ourselves to the run area */
     lea     _reloc_source, %a0
     lea     _reloc_destination, %a1
     lea     _reloc_end, %a2
-    jmp     2f
+    jra     2f
 1:
     move.l  (%a0)+, (%a1)+
 2:
     cmp.l   %a1, %a2
-    bne     1b
+    jne     1b
 
     /* force a long jump to the run location */
     lea     3f, %a0
-    jmp     (%a0)
+    jra     (%a0)
 3:
 
     /* zero the BSS (always 32-aligned)  */
     lea     _edata, %a0
     lea     _ebss, %a1
-    jmp     5f
+    jra     5f
 4:
     clrl    (%a0)+
 5:
     cmp.l   %a0, %a1
-    bne     4b
+    jne     4b
 
     /* set up a stack frame */
     link    %fp, #-8
@@ -45,7 +47,7 @@ _reset:
     /* and call the start routine */
     .extern main
     jbsr    main
-    bra     .
+    jra     .
 
     /****************************************
      * default handler for unexpected exceptions
@@ -57,7 +59,7 @@ _reset:
 vector_unhandled_exception:
     movem   %d0-%a6, -(%sp)
     jbsr    unhandled_exception
-    bra     .
+    jra     .
 
     /****************************************
      * emulator trace output

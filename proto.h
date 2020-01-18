@@ -1,6 +1,7 @@
 /*
  * Function prototypes
  */
+#pragma once
 
 #include "lib.h"
 #include "board.h"

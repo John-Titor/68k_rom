@@ -6,7 +6,7 @@
 
 #define STR(_x) #_x
 #define XSTR(_x) STR(_x)
-static const char *banner = "68k monitor " XSTR(GITHASH) "\n";
+static const char *banner = "\n\n68k monitor " XSTR(GITHASH) "\n";
 
 static void cmd_execute(const char *cmd);
 static void cmd_script(const char *script);
@@ -32,7 +32,7 @@ main()
     putln("\ntry 'help'");
 
     for (;;) {
-        board_status(1);
+        board_status(3);
         puts("] ");
         char *cmd;
 

@@ -133,28 +133,16 @@ board_init()
 {
     /* configure for driving LEDs */
     DUART_OPCR = 0;
-    board_status(0);
+    board_status(1);
 
-    // baudrate set 1, timer mode, CLK/16
-    DUART_ACR = DUART_ACR_MODE_TMR_XTAL16;
-
-    // mask interrupts
-    DUART_IMR = 0;
-
-    // pick a vector
-    DUART_IVR = 64;
-
-    // channel A, 9600,n81
-    DUART_CRA = DUART_CR_MRRST;
     DUART_MRA = DUART_MR1_8BIT | DUART_MR1_NO_PARITY | DUART_MR1_RTS;
     DUART_MRA = DUART_MR2_CTS_ENABLE_TX | DUART_MR2_1STOP;
-    DUART_CSRA = DUART_CSR_38400B;
-    DUART_CRA = DUART_CR_TXRST | DUART_CR_TXEN;
-    DUART_CRA = DUART_CR_RXRST | DUART_CR_RXEN;
-
-    // 10ms tick
+    DUART_IVR = 64;
+    DUART_ACR = DUART_ACR_MODE_TMR_XTAL16;
     DUART_CTLR = 0x80;
-    DUART_CTUR = 0x04;
+    DUART_CTUR = 0x4;
+    DUART_CSRA = DUART_CSR_38400B;
+    DUART_CRA = DUART_CR_TXEN | DUART_CR_RXEN;
 
     // clear any pending interrupt
     (void)DUART_STOPCC;
@@ -162,6 +150,7 @@ board_init()
     // interrupts enabled
     DUART_IMR = DUART_INT_CTR;
 
+    board_status(2);
 }
 
 /**********************************************************************
@@ -224,11 +213,13 @@ board_putc(char c)
     }
 
     for (;;) {
+        board_status(5);
         if (DUART_SRA & DUART_SR_TRANSMITTER_READY) {
             DUART_TBA = c;
             break;
         }
     }
+    board_status(3);
 }
 
 /**********************************************************************

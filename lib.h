@@ -1,6 +1,7 @@
 /*
  * Mini C library
  */
+#pragma once
 
 #include <stdarg.h>
 #include <stdint.h>
@@ -31,6 +32,21 @@ static inline char toupper(char c)
 static inline bool isspace(char c)
 {
     return (c == ' ') || (c == '\t');
+}
+
+static inline bool isdigit(char c)
+{
+	return (c >= '0') && (c <= '9');
+}
+
+static inline bool isxdigit(char c)
+{
+	return isdigit(c) || (((c | 0x20) >= 'a') && ((c | 0x20) <= 'z'));
+}
+
+static inline int xdigit(char c)
+{
+	return isdigit(c) ? c - '0' : isxdigit(c) ? (c | 0x20) - 'a' + 10: -1;
 }
 
 static inline uint16_t swap16(uint16_t val)

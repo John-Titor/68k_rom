@@ -7,6 +7,7 @@ typedef struct {
 void
 unhandled_exception(registers_t regs __attribute((unused)))
 {
+    board_status(0);
     putln("unhandled exception");
 }
 
