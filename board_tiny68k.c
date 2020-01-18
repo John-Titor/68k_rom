@@ -125,6 +125,15 @@
 #define LED_DATA(_x)                ((_x) << 1)
 
 
+/**********************************************************************/
+
+#define RX_BUF_SIZE     128
+static char board_rx_buf[RX_BUF_SIZE];
+static uint16_t board_rx_head;
+static uint16_t board_rx_tail;
+
+const char *board_name = "Tiny68k";
+
 /**********************************************************************
  * board_init
  */
@@ -148,7 +157,7 @@ board_init()
     (void)DUART_STOPCC;
 
     // interrupts enabled
-    DUART_IMR = DUART_INT_CTR;
+    DUART_IMR = DUART_INT_RXRDY_A | DUART_INT_CTR;
 
     board_status(2);
 }
@@ -193,13 +202,18 @@ static const uint8_t led7_tab[] = {
     /* ? */ LED_SEG_A | LED_SEG_B |         0 |         0 | LED_SEG_E |         0 | LED_SEG_G,
 };
 
-void
+uint8_t
 board_status(uint8_t code)
 {
+    static uint8_t prev_code;
+    uint8_t ret_code = prev_code;
+
     if (code < sizeof(led7_tab)) {
         LED_DATA_CLR = 0xff;
         LED_DATA_SET = led7_tab[code];
+        prev_code = code;
     }
+    return ret_code;
 }
 
 /**********************************************************************
@@ -228,7 +242,12 @@ board_putc(char c)
 int
 board_getc()
 {
-    return (DUART_SRA & DUART_SR_RECEIVER_READY) ? DUART_RBA : -1;
+    if (board_rx_head != board_rx_tail) {
+        char c = board_rx_buf[board_rx_tail % RX_BUF_SIZE];
+        board_rx_tail++;
+        return c;
+    }
+    return -1;
 }
 
 /**********************************************************************
@@ -276,10 +295,20 @@ INTERRUPT_HANDLER
 void
 vector_64(void)
 {
+    uint8_t prev_code = board_status(9);
     uint8_t stat = DUART_ISR;
+
+    if (stat & DUART_INT_RXRDY_A) {
+        char c = DUART_RBA;
+        if ((board_rx_head - board_rx_tail) < RX_BUF_SIZE) {
+            board_rx_buf[board_rx_head % RX_BUF_SIZE] = c;
+            board_rx_head++;
+        }
+    }
 
     if (stat & DUART_INT_CTR) {
         (void)DUART_STOPCC;
         timer_tick();
     }
+    board_status(prev_code);
 }
