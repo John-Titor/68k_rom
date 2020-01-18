@@ -8,12 +8,14 @@ typedef __attribute__((noreturn)) void (*entry_function)(void);
 
 #define MAX_SRECORD_SIZE    80
 
-static uint32_t srecord_entrypoint = ~(uint32_t)0;
+static uintptr_t srecord_entrypoint = ~(uintptr_t)0;
 
 extern uint8_t _btext;
 extern uint8_t _vector_top;
 extern uint8_t _vector_savearea;
+
 static uint8_t *vector_savearea = &_vector_savearea;
+static uint32_t vector_savearea_size = (uintptr_t)&_vector_top;
 
 static int
 srecord_onehex(const char *bp)
@@ -35,7 +37,7 @@ srecord_process(const char *input_buffer)
     board_status(8);
 
     srecord_entrypoint = ~(uint32_t)0;
-    memcpy(vector_savearea, 0, sizeof(vector_savearea));
+    memcpy(vector_savearea, 0, vector_savearea_size);
 
     for (;;) {
         // basic sanity on the input string
@@ -46,7 +48,7 @@ srecord_process(const char *input_buffer)
             || !isdigit(input_buffer[1])
             || (input_buffer[1] == '4')) {
 
-            putln("bad record length / type");
+            fmt("bad record length / type in %s\n", input_buffer);
             return -1;
         }
 
@@ -88,26 +90,70 @@ srecord_process(const char *input_buffer)
             return -1;
         }
 
-//        uint8_t type = input_buffer[1] - '0';
-/*
         // fetch an address
-        uint32_t address = 0;
-        unsigned parse_index = 1;
+        uint8_t type = input_buffer[1] - '0';
+        uintptr_t address = 0;
+        unsigned parse_index = 0;
         switch (type) {
+        case 0:
+        case 5:
+        case 6:
+            // ignore these records
+            break;
         case 3: // 32
         case 7:
+            address += buf[parse_index++];
+            // FALLTHROUGH
         case 2: // 24
         case 8:
+            address <<= 8;
+            address += buf[parse_index++];
+            // FALLTHROUGH
         case 1: // 16
         case 9:
-*/
-
-
-        input_buffer = gets();
-        if (input_buffer == NULL) {
-            putln("cancelled");
-            return 0;
+            address <<= 8;
+            address += buf[parse_index++];
+            address <<= 8;
+            address += buf[parse_index++];
+            break;
+        default:
+            return -1;  // should be unreachable
         }
+
+        switch (type) {
+        case 0:
+        case 5:
+        case 6:
+            break;
+        case 1:
+        case 2:
+        case 3:
+            // copy bytes to memory or vector save area as required
+            while (count--) {
+                if (address < vector_savearea_size) {
+                    vector_savearea[address++] = buf[parse_index++];
+                } else {
+                    *(uint8_t *)(address++) = buf[parse_index++];
+                }
+            }
+            break;
+        case 7:
+        case 8:
+        case 9:
+            srecord_entrypoint = address;
+            return 0;
+        default:
+            return -1;  // should be unreachable
+        }
+
+        putc('.');
+        do {
+            input_buffer = getln(100);
+            if (input_buffer == NULL) {
+                putln("cancelled");
+                return 0;
+            }
+        } while (strlen(input_buffer) == 0);
     }
 }
 
@@ -118,20 +164,21 @@ static int
 srecord(const char *input_buffer)
 {
     if (input_buffer == NULL) {
-        putln("<S-records>                       Upload S-records to load a new program");
-        putln("go                                Start a previously uploaded program");
+        putln("<S-records>                       load a new program");
+        putln("go                                start an uploaded program");
     } else if ((strlen(input_buffer) > 12)
                && (input_buffer[0] == 'S') 
                && isdigit(input_buffer[1])) {
-        // might be s-records
-        return srecord_process(input_buffer);
-        //return srecord_loop(input_buffer);
-
+        if (srecord_process(input_buffer) == 0) {
+            fmt("\ns-records loaded, entry address 0x%l. 'go' to run program.\n",
+                srecord_entrypoint);
+            return 0;
+        }
     } else if (!strcmp(input_buffer, "go")) {
         if (srecord_entrypoint != ~(uint32_t)0) {
-            board_status(9);
+            board_status(8);
             board_deinit();
-            memcpy(0, vector_savearea, sizeof(vector_savearea));
+            memcpy(0, vector_savearea, vector_savearea_size);
 
             ((entry_function)srecord_entrypoint)();
         }

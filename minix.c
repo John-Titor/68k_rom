@@ -74,7 +74,7 @@ static int
 minix(const char *input_buffer)
 {
     if (input_buffer == NULL) {
-        putln("minix                            load and run MINIX.SYS");
+        putln("minix                             load and run MINIX.SYS");
 
     } else if (!strncasecmp(input_buffer, "minix", 6)) {
         return minix_load();
