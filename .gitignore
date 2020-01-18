@@ -1,4 +1,5 @@
 *.bin
 *.elf
 *.map
+*.s19
 trace.out

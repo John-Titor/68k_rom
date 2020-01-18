@@ -1,6 +1,6 @@
 # Build ROM for Tiny68k
 
-TOOL_PREFIX		 = /Volumes/CTNG/dst/bin/m68k-unknown-elf-
+TOOL_PREFIX		 = /Volumes/CTNG/m68k-unknown-elf/bin/m68k-unknown-elf-
 CC			 = $(TOOL_PREFIX)cc
 OBJCOPY			 = $(TOOL_PREFIX)objcopy
 SIZE			 = $(TOOL_PREFIX)size
@@ -8,7 +8,10 @@ LINKER_SCRIPT		 = tiny68k.ld
 PRODUCT			 = rom
 BINARY			 = $(PRODUCT).bin
 ELF			 = $(PRODUCT).elf
+SREC			 = $(PRODUCT).s19
 MAP			 = $(PRODUCT).map
+
+LIBDIRS			 = ihr newlib pffs
 
 LIBGCC			:= $(shell $(CC) --print-file-name libgcc.a)
 COMPILER_INCLUDES	 = $(dir $(LIBGCC))include
@@ -35,16 +38,21 @@ OPTS			 = -I$(COMPILER_INCLUDES) \
 
 CSRCS			:= $(wildcard *.c)
 ASRCS			:= $(wildcard *.S)
-LIBSRCS			:= $(wildcard newlib/*.c) $(wildcard newlib/*.S) $(wildcard pffs/*.c)
 HDRS			:= $(wildcard *.h)
+LIBSRCS			:= $(foreach dir,$(LIBDIRS),$(foreach suffix,c S,$(wildcard $(dir)/*.$(suffix))))
 
 ALL_SRCS		:= $(CSRCS) $(ASRCS) $(LIBSRCS)
 FORMAT_SRCS		:= $(CSRCS) $(HDRS)
 
+all:	$(BINARY) $(SREC)
+
 $(BINARY): $(ELF)
 	$(OBJCOPY) -O binary $< $@
 
-$(ELF): $(CSRCS) $(ASRCS) $(HDRS) $(LINKER_SCRIPT) $(MAKEFILE_LIST)
+$(SREC): $(ELF)
+	$(OBJCOPY) -O srec $< $@
+
+$(ELF): $(ALL_SRCS) $(HDRS) $(LINKER_SCRIPT) $(MAKEFILE_LIST)
 	$(CC) $(OPTS) -T $(LINKER_SCRIPT) -o $@ $(ALL_SRCS) $(LIBGCC)
 	$(SIZE) $@
 
