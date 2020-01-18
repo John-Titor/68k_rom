@@ -119,35 +119,46 @@ putln(const char *str)
     putc('\n');
 }
 
-char *
-gets()
+static char *
+gets_internal(uint32_t timeout, bool echo)
 {
     static char buf[100];
-    static const unsigned maxlen = sizeof(buf) - 1;
-    unsigned len = 0;
+    static const uint32_t maxlen = sizeof(buf) - 1;
+    uint32_t len = 0;
+    uint32_t start_time = timer_get_ticks();
 
     for (;;) {
+        if (timeout
+            && ((timer_get_ticks() - start_time) > timeout)) {
+            return NULL;
+        }
         int c = getc();
 
         if (c > 0) {
             switch (c) {
             case '\b':
                 if (len > 0) {
-                    puts("\b \b");
                     len--;
+                    if (echo) {
+                        puts("\b \b");
+                    }
                 }
 
                 break;
 
             case 0x03: // ^c
-                puts("^C\n");
+                if (echo) {
+                    puts("^C\n");
+                }
                 return NULL;
 
             case 0x0b: // ^k
             case 0x15: // ^u
                 while (len > 0) {
-                    puts("\b \b");
                     len--;
+                    if (echo) {
+                        puts("\b \b");
+                    }
                 }
 
                 break;
@@ -155,13 +166,17 @@ gets()
             case '\r':
             case '\n':
                 buf[len] = '\0';
-                putc('\n');
+                if (echo) {
+                    putc('\n');
+                }
                 return buf;
 
             case ' '...126:
                 if (len < maxlen) {
                     buf[len++] = c;
-                    putc(c);
+                    if (echo) {
+                        putc(c);
+                    }
                 }
 
                 break;
@@ -173,19 +188,31 @@ gets()
     }
 }
 
+char *
+gets()
+{
+    return gets_internal(0, true);
+}
+
+char *
+getln(uint32_t timeout)
+{
+    return gets_internal(timeout, false);
+}
+
 static const char *hextab = "0123456789abcdef";
 
 static void
 putx(uint32_t value, size_t len)
 {
-    unsigned shifts = len * 2;
+    uint32_t shifts = len * 2;
     char buf[shifts + 1];
     char *p = buf + shifts;
 
     *p = '\0';
 
     do {
-        unsigned nibble = value & 0xf;
+        uint32_t nibble = value & 0xf;
         value >>= 4;
         *--p = hextab[nibble];
     } while (p > buf);
@@ -206,7 +233,7 @@ putd(uint32_t value)
     *p = '\0';
 
     while (value > 0) {
-        unsigned digit = value % 10;
+        uint32_t digit = value % 10;
         value /= 10;
         *--p = hextab[digit];
     }
@@ -219,8 +246,8 @@ putd(uint32_t value)
 size_t
 hexdump(uintptr_t addr, uintptr_t address, size_t length, char width)
 {
-    unsigned index;
-    unsigned incr = WSELECT(width, 4, 2, 1);
+    uint32_t index;
+    uint32_t incr = WSELECT(width, 4, 2, 1);
 
     length &= ~(incr - 1);
 
@@ -228,11 +255,11 @@ hexdump(uintptr_t addr, uintptr_t address, size_t length, char width)
         putx(address + index, 8);
         putc(':');
 
-        for (unsigned col = 0; col < 16; col += incr) {
+        for (uint32_t col = 0; col < 16; col += incr) {
             putc(' ');
 
             if ((index + col) >= length) {
-                unsigned count = WSELECT(width, 8, 4, 2);
+                uint32_t count = WSELECT(width, 8, 4, 2);
 
                 while (count--) {
                     putc(' ');
@@ -246,10 +273,10 @@ hexdump(uintptr_t addr, uintptr_t address, size_t length, char width)
 
         puts("  ");
 
-        for (unsigned col = 0; col < 16; col++) {
+        for (uint32_t col = 0; col < 16; col++) {
             if ((index + col) < length) {
                 uintptr_t p = (addr + index + col);
-                unsigned c = *(char *)p;
+                uint32_t c = *(char *)p;
 
                 if ((c >= ' ') && (c < 127)) {
                     putc(c);
@@ -273,7 +300,7 @@ hexdump(uintptr_t addr, uintptr_t address, size_t length, char width)
  * Supports:
  *  %c      character (char)
  *  %d      signed decimal integer (int)
- *  %u      unsigned decimal integer (unsigned int)
+ *  %u      uint32_t decimal integer (uint32_t int)
  *  %p      pointer (32-bit hex) (const void *)
  *  %b      hex byte (uint8_t)
  *  %w      hex word (uint16_t)
@@ -325,7 +352,7 @@ fmt(const char *format, ...)
             }
 
         case 'u': {
-                unsigned v = va_arg(ap, unsigned);
+                uint32_t v = va_arg(ap, uint32_t);
                 putd(v);
                 break;
             }
@@ -338,13 +365,13 @@ fmt(const char *format, ...)
             }
 
         case 'b': {
-                uint8_t v = va_arg(ap, unsigned);
+                uint8_t v = va_arg(ap, uint32_t);
                 putx(v, sizeof(v));
                 break;
             }
 
         case 'w': {
-                uint16_t v = va_arg(ap, unsigned);
+                uint16_t v = va_arg(ap, uint32_t);
                 putx(v, sizeof(v));
                 break;
             }
@@ -436,7 +463,7 @@ scan_digits(const char **bp, uint32_t *result)
  *
  * Supports:
  *  %c      character (char *)
- *  %l      unsigned number, decimal or hex with preceding 0x (uint32_t *)
+ *  %l      uint32_t number, decimal or hex with preceding 0x (uint32_t *)
  *  %s      string, needs 2 args, pointer & max length (char *, size_t)
  *
  * @param[in]  buf        buffer to scan
@@ -522,7 +549,7 @@ scan(const char *buf, const char *format, ...)
                     return -1;
                 }
 
-                unsigned index = 0;
+                uint32_t index = 0;
 
                 for (;;) {
                     if ((*buf == 0) || isspace(*buf)) {

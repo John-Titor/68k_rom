@@ -20,6 +20,7 @@ extern int getc();
 extern void puts(const char *str);
 extern void putln(const char *str);
 extern char *gets();
+extern char *getln(uint32_t timeout);
 extern size_t hexdump(uintptr_t addr, uintptr_t address, size_t length, char width);
 extern void fmt(const char *format, ...);
 extern int scan(const char *buf, const char *format, ...);
