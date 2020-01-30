@@ -4,12 +4,6 @@ TOOL_PREFIX		 = /Volumes/CTNG/m68k-unknown-elf/bin/m68k-unknown-elf-
 CC			 = $(TOOL_PREFIX)cc
 OBJCOPY			 = $(TOOL_PREFIX)objcopy
 SIZE			 = $(TOOL_PREFIX)size
-LINKER_SCRIPT		 = tiny68k.ld
-PRODUCT			 = rom
-BINARY			 = $(PRODUCT).bin
-ELF			 = $(PRODUCT).elf
-SREC			 = $(PRODUCT).s19
-MAP			 = $(PRODUCT).map
 
 LIBDIRS			 = ihr newlib pffs
 
@@ -34,7 +28,8 @@ OPTS			 = -I$(COMPILER_INCLUDES) \
 			   -ffunction-sections \
 			   -fdata-sections \
 			   -Wl,-gc-sections \
-			   -Wl,-Map=$(MAP)
+			   -Wl,-Map=$(board).map \
+			   -T $(board).ld
 
 CSRCS			:= $(wildcard *.c)
 ASRCS			:= $(wildcard *.S)
@@ -44,20 +39,28 @@ LIBSRCS			:= $(foreach dir,$(LIBDIRS),$(foreach suffix,c S,$(wildcard $(dir)/*.$
 ALL_SRCS		:= $(CSRCS) $(ASRCS) $(LIBSRCS)
 FORMAT_SRCS		:= $(CSRCS) $(HDRS)
 
-all:	$(BINARY) $(SREC)
+BOARDS			:= $(patsubst board_%.c, %, $(wildcard board_*.c))
+ROMS			 = $(addsuffix .rom, $(BOARDS))
+ELFS			 = $(addsuffix .elf, $(BOARDS))
+SRECS			 = $(addsuffix .s19, $(BOARDS))
+MAPS			 = $(addsuffix .map, $(BOARDS))
 
-$(BINARY): $(ELF)
+all:	$(ROMS) $(SRECS)
+
+%.rom: %.elf
 	$(OBJCOPY) -O binary $< $@
 
-$(SREC): $(ELF)
+%.s19: %.elf
 	$(OBJCOPY) -O srec $< $@
 
-$(ELF): $(ALL_SRCS) $(HDRS) $(LINKER_SCRIPT) $(MAKEFILE_LIST)
-	$(CC) $(OPTS) -T $(LINKER_SCRIPT) -o $@ $(ALL_SRCS) $(LIBGCC)
+$(ELFS): board=$(basename $@)
+$(ELFS): $(ALL_SRCS) $(HDRS) $(LINKER_SCRIPT) $(MAKEFILE_LIST)
+	@echo ==== BUILD: $(board)
+	$(CC) -DCONFIG_BOARD_$(board) $(OPTS) -o $@ $(ALL_SRCS) $(LIBGCC)
 	$(SIZE) $@
 
 clean:
-	rm -f $(BINARY) $(ELF) $(MAP)
+	rm -f $(ROMS) $(ELFS) $(SRECS) $(MAPS)
 
 .PHONY: reformat
 reformat:

@@ -2,4 +2,4 @@
 *.elf
 *.map
 *.s19
-trace.out
+*.sublime-workspace

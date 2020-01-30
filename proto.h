@@ -41,3 +41,6 @@ extern cmd_handler_fn   _commands, _ecommands;
 #define INTERRUPT_HANDLER                           \
     __attribute__((interrupt))                      \
     __attribute__((section("INTERRUPT_HANDLERS")))
+
+#define REG8(_adr)      (*(volatile uint8_t *)(_adr))
+#define REG16(_adr)     (*(volatile uint16_t *)(_adr))

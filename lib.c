@@ -388,6 +388,11 @@ fmt(const char *format, ...)
                 break;
             }
 
+        case '%': {
+            putc('%');
+            break;
+        }
+
         default:
             putc('%');
             putc(c);

@@ -1,13 +1,17 @@
 /*
- * Board support for Tiny68K
+ * Board support for Tiny68K, T68KRC
+ * 
+ * No conditional includes to avoid bad dependencies.
  */
-
 #include <stdint.h>
-
 #include "proto.h"
 
-#define REG8(_adr)      (*(volatile uint8_t *)(_adr))
-#define REG16(_adr)     (*(volatile uint16_t *)(_adr))
+#ifdef CONFIG_BOARD_tiny68k
+const char *board_name = "Tiny68k";
+# define CONFIG_BOARD_t68k_common
+#endif /* CONFIG_BOARD_tiny68k */
+
+#ifdef CONFIG_BOARD_t68k_common
 
 #define I2C_BASE                0xffd000UL
 #define I2C_REG                 REG8(I2C_BASE)
@@ -132,8 +136,6 @@ static char board_rx_buf[RX_BUF_SIZE];
 static uint16_t board_rx_head;
 static uint16_t board_rx_tail;
 
-const char *board_name = "Tiny68k";
-
 /**********************************************************************
  * board_init
  */
@@ -144,6 +146,7 @@ board_init()
     DUART_OPCR = 0;
     board_status(1);
 
+    /* initialise console UART */
     DUART_MRA = DUART_MR1_8BIT | DUART_MR1_NO_PARITY | DUART_MR1_RTS;
     DUART_MRA = DUART_MR2_CTS_ENABLE_TX | DUART_MR2_1STOP;
     DUART_IVR = 64;
@@ -312,3 +315,5 @@ vector_64(void)
     }
     board_status(prev_code);
 }
+
+#endif /* CONFIG_BOARD_t68k_common */

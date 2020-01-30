@@ -1,0 +1,7 @@
+.vectors 0x0/272 @ 0x0
+.text 0xfe8000/7468 @ 0x400
+.data 0xfe9d2c/16 @ 0x212c
+.bss 0xfe9d3c/58052 @ 0x213c
+   MESSAGE:                                          : bogus payload address 0xfe9078
+   MESSAGE:                                          : bogus payload address 0xfe99c7
+       END:                                          : 49802965936 cycles in 76647.66931509972 seconds, 649764 cps
