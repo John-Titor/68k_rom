@@ -12,7 +12,8 @@ Tasks:
     ☐ utility command
     ☐ read/write EEPROM
     ☐ NVRAM
-    
+  ☐ Pass arguments to loader_go()
+  
   selftest commands:
     ☐ exception generator
     ☐ disk exerciser

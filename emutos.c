@@ -7,37 +7,39 @@ typedef __attribute__((noreturn)) void (*entry_function)(void);
 
 static const char *emutos_image_name = "EMUTOS.SYS";
 
-static int
+static void
 emutos_load()
 {
-    char    *emutos_buffer = (char *)TOS_ROM_BASE;
+    uint8_t fs_buffer[4096];
     FATFS   fs;
 
     board_status(8);
 
     if (pf_mount(&fs) != FR_OK) {
         putln("disk mount failed");
-        return -1;
+        return;
     }
 
     if (pf_open(emutos_image_name) != FR_OK) {
         fmt("%s not found\n", emutos_image_name);
-        return -1;
+        return;
     }
 
-    char *bp = emutos_buffer;
+    uintptr_t bp = TOS_ROM_BASE;
     UINT resid = fs.fsize;
     UINT br;
     fmt("loading %s", emutos_image_name);
+    init_loader();
 
     while (resid > 0) {
-        size_t to_read = (resid > 16384) ? 16384 : resid;
+        size_t to_read = (resid > sizeof(fs_buffer)) ? sizeof(fs_buffer) : resid;
 
-        if ((pf_read(bp, to_read, &br) != FR_OK)
+        if ((pf_read(fs_buffer, to_read, &br) != FR_OK)
                 || (br == 0)) {
             putln(" read error");
-            return -1;
+            return;
         }
+        loader_load_bytes(bp, fs_buffer, br);
 
         resid -= br;
         bp += br;
@@ -46,17 +48,17 @@ emutos_load()
 
     putc('\n');
 
+    const char *emutos_buffer = (const char *)TOS_ROM_BASE;
     if (strncmp((char *)emutos_buffer + 0x2c, "ETOS", 4)) {
         fmt("%s is not an EmuTOS image\n", emutos_image_name);
-        return -1;
+        return;
     }
 
     uint32_t version_offset = *(uint32_t *)(emutos_buffer + 0x40);
     fmt("EmuTOS version %s\n", emutos_buffer + version_offset);
 
-    board_status(9);
-    board_deinit();
-    ((entry_function)TOS_ROM_BASE)();
+    loader_set_entry(TOS_ROM_BASE);
+    loader_go();
 }
 
 COMMAND(emutos);
@@ -68,7 +70,7 @@ emutos(const char *input_buffer)
         putln("emutos                            load and run EMUTOS.SYS");
 
     } else if (!strncasecmp(input_buffer, "emutos", 6)) {
-        return emutos_load();
+        emutos_load();
     }
 
     return -1;

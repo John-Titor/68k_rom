@@ -10,7 +10,7 @@
 
 typedef __attribute__((noreturn)) void (*entry_function)(void);
 
-static const char *minix_image_name = "MINIX.SYS";
+static const char *minix_image_name = "MINIX.IMG";
 
 static int
 minix_load()

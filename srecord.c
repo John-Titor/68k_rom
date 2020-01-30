@@ -4,18 +4,9 @@
 
 #include "proto.h"
 
-typedef __attribute__((noreturn)) void (*entry_function)(void);
-
 #define MAX_SRECORD_SIZE    80
 
 static uintptr_t srecord_entrypoint = ~(uintptr_t)0;
-
-extern uint8_t _btext;
-extern uint8_t _vector_top;
-extern uint8_t _vector_savearea;
-
-static uint8_t *vector_savearea = &_vector_savearea;
-static uint32_t vector_savearea_size = (uintptr_t)&_vector_top;
 
 static int
 srecord_onehex(const char *bp)
@@ -36,8 +27,7 @@ srecord_process(const char *input_buffer)
 
     board_status(8);
 
-    srecord_entrypoint = ~(uint32_t)0;
-    memcpy(vector_savearea, 0, vector_savearea_size);
+    init_loader();
 
     for (;;) {
         // basic sanity on the input string
@@ -128,19 +118,12 @@ srecord_process(const char *input_buffer)
         case 1:
         case 2:
         case 3:
-            // copy bytes to memory or vector save area as required
-            while (count--) {
-                if (address < vector_savearea_size) {
-                    vector_savearea[address++] = buf[parse_index++];
-                } else {
-                    *(uint8_t *)(address++) = buf[parse_index++];
-                }
-            }
+            loader_load_bytes(address, buf + parse_index, count);
             break;
         case 7:
         case 8:
         case 9:
-            srecord_entrypoint = address;
+            loader_set_entry(address);
             return 0;
         default:
             return -1;  // should be unreachable
@@ -175,13 +158,7 @@ srecord(const char *input_buffer)
             return 0;
         }
     } else if (!strcmp(input_buffer, "go")) {
-        if (srecord_entrypoint != ~(uint32_t)0) {
-            board_status(8);
-            board_deinit();
-            memcpy(0, vector_savearea, vector_savearea_size);
-
-            ((entry_function)srecord_entrypoint)();
-        }
+        loader_go();
     }
     return -1;
 }
