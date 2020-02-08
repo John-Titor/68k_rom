@@ -15,7 +15,6 @@ GITHASH			:= $(shell git describe --always --dirty=-modified)
 OPTS			 = -I$(COMPILER_INCLUDES) \
 			   -DGITHASH=$(GITHASH) \
 			   -DTEST=1 \
-			   -mcpu=68000 \
 			   -std=gnu17 \
 			   -Wall \
 			   -Wextra \
@@ -29,7 +28,16 @@ OPTS			 = -I$(COMPILER_INCLUDES) \
 			   -fdata-sections \
 			   -Wl,-gc-sections \
 			   -Wl,-Map=$(board).map \
-			   -T $(board).ld
+			   -T link_$(board).ld
+
+OPTS_tiny68k		 = -mcpu=68000 \
+			   -DWITH_STARTUP_RELOCATION
+
+OPTS_t68krc		 = -mcpu=68000 \
+			   -DWITH_STARTUP_RELOCATION
+
+OPTS_p90mb		 = -mcpu=68010 \
+			   -DWITH_STARTUP_DATA_COPY
 
 CSRCS			:= $(wildcard *.c)
 ASRCS			:= $(wildcard *.S)
@@ -45,7 +53,10 @@ ELFS			 = $(addsuffix .elf, $(BOARDS))
 SRECS			 = $(addsuffix .s19, $(BOARDS))
 MAPS			 = $(addsuffix .map, $(BOARDS))
 
+.PHONY: all $(BOARDS)
 all:	$(ROMS) $(SRECS)
+$(BOARDS):
+	@$(MAKE) $@.rom
 
 %.rom: %.elf
 	$(OBJCOPY) -O binary $< $@
@@ -56,7 +67,7 @@ all:	$(ROMS) $(SRECS)
 $(ELFS): board=$(basename $@)
 $(ELFS): $(ALL_SRCS) $(HDRS) $(LINKER_SCRIPT) $(MAKEFILE_LIST)
 	@echo ==== BUILD: $(board)
-	$(CC) -DCONFIG_BOARD_$(board) $(OPTS) -o $@ $(ALL_SRCS) $(LIBGCC)
+	$(CC) -DCONFIG_BOARD_$(board) $(OPTS_$(board)) $(OPTS) -o $@ $(ALL_SRCS) $(LIBGCC)
 	$(SIZE) $@
 
 clean:

@@ -19,12 +19,11 @@ void
 main()
 {
     // initialize things
-    init_emulator();
     board_init();
-    interrupt_enable();
+    interrupt_enable(true);
 
     // signs of life
-    emulator_puts(banner);
+    trace_fmt(banner, board_name);
     fmt(banner, board_name);
 
     cmd_script(auto_script);

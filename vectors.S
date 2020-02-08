@@ -15,6 +15,7 @@ _reset:
     move.w #0x2700, %sr     /* make sure interrupts are off */
     lea     _stack_top, %sp /* ensure stack pointer */
 
+#ifdef WITH_STARTUP_RELOCATION
     /* copy ourselves to the run area */
     lea     _reloc_source, %a0
     lea     _reloc_destination, %a1
@@ -30,6 +31,7 @@ _reset:
     lea     3f, %a0
     jra     (%a0)
 3:
+#endif /* WITH_STARTUP_RELOCATION */
 
     /* zero the BSS (always 32-aligned)  */
     lea     _edata, %a0

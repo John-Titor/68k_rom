@@ -8,11 +8,13 @@ Tasks:
   ✔ filesystem reader @done (20-01-11 13:58)
     ✔ ChaN PFFS @done (20-01-11 13:58)
     ✔ read file into memory @done (20-01-11 13:58)
-  ☐ I2C read/write
+  ☐ I2C read/write @low
     ☐ utility command
     ☐ read/write EEPROM
     ☐ NVRAM
   ☐ Pass arguments to loader_go()
+  ✔ Native Features support @done (20-02-07 21:10)
+  ☐ 68010+ startup should put vector address in VTOR @high
   
   selftest commands:
     ☐ exception generator
@@ -24,6 +26,8 @@ Things to fix:
 
 Nice to have:
   ☐ disassembly format
+  ☐ try building with newlib & tiny specs / nofloat
 
 Tests:
   ✔ scan needs test cases @done (20-01-09 20:04)
+  ☐ verify that p90mb s-record upload works (vector save area size is zero)

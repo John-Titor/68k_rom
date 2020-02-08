@@ -6,12 +6,12 @@
 #include "lib.h"
 #include "board.h"
 
-extern void init_emulator();
-extern void emulator_puts(const char *str);
+extern void trace_puts(const char *str);
+extern void trace_putc(char c);
+extern void trace_fmt(const char *format, ...);
 
-extern uint16_t interrupt_disable();
-extern void interrupt_enable();
-extern void interrupt_restore(uint16_t state);
+extern bool interrupt_disable();
+extern void interrupt_enable(bool enable);
 
 extern void timer_tick();
 extern uint32_t timer_get_ticks();

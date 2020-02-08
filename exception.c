@@ -11,33 +11,42 @@ unhandled_exception(registers_t regs __attribute((unused)))
     putln("unhandled exception");
 }
 
-#define set_sr(a)                         \
-    __extension__                             \
-    ({short _r, _a = (a);                     \
-        __asm__ volatile                        \
-        ("move.w %%sr,%0\n\t"                   \
-         "move.w %1,%%sr"                       \
-         : "=&d"(_r)        /* outputs */        \
-         : "nd"(_a)         /* inputs  */        \
-         : "cc", "memory"   /* clobbered */      \
-        );                                      \
-        _r;                                     \
-    })
+static inline uint16_t
+get_sr()
+{
+    uint16_t result;
+    __asm__ volatile (
+        "move.w %%sr, %0"
+        : "=d" (result)
+        :
+        : "memory"
+    );
+    return result;
+}
 
-uint16_t
+static inline void
+set_sr(uint16_t value)
+{
+    __asm__ volatile (
+        "move.w %0, %%sr"
+        :
+        : "d" (value)
+        : "memory"
+    );
+}
+
+bool
 interrupt_disable()
 {
-    return set_sr(0x2700);
+    bool state = ((get_sr() & 0x0700) == 0);
+    set_sr(0x2700);
+    return state;
 }
 
 void
-interrupt_enable()
+interrupt_enable(bool enable)
 {
-    set_sr(0x2000);
-}
-
-void
-interrupt_restore(uint16_t state)
-{
-    set_sr(state);
+    if (enable) {
+        set_sr(0x2000);
+    }
 }

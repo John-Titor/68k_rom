@@ -1,5 +1,5 @@
 /*
- * Linker script for ROM on Tiny68k SBC
+ * Linker script for ROM on T68KRC SBC
  */
 
 OUTPUT_ARCH(m68k)
@@ -12,13 +12,14 @@ ENTRY(_reset_vector)
  * ROM to the end of RAM so that it's possible to upload a
  * new program at zero.
  *
- * Peripherals start at 16M - 32K, so we take 64K below that.
+ * RAM size on this board is 2M, so we take 32K code + 32K data
+ * at the end.
  */
 MEMORY
 {
     vectors(rw) : ORIGIN = 0, LENGTH = 1K
     loadspace(rw) : ORIGIN = 1K, LENGTH = 31K
-    runspace(rwx) : ORIGIN = 16M - 96K, LENGTH = 64K
+    runspace(rwx) : ORIGIN = 2M - 64K, LENGTH = 64K
 }
 
 PROVIDE(_reset_vector = ORIGIN(loadspace));

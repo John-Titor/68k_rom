@@ -15,9 +15,9 @@ timer_tick()
 uint32_t
 timer_get_ticks()
 {
-    unsigned s = interrupt_disable();
+    bool state = interrupt_disable();
     uint32_t ret = timer_ticks;
-    interrupt_restore(s);
+    interrupt_enable(state);
     return ret;
 }
 

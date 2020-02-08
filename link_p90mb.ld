@@ -7,21 +7,17 @@ OUTPUT(elf32-m68k)
 ENTRY(_reset_vector)
 
 /*
- * 32K of ROM is copied to zero by hardware at startup. 
- * We leave vectors at zero, but relocate the rest of the
- * ROM to the end of RAM so that it's possible to upload a
- * new program at zero.
- *
- * Peripherals start at 16M - 32K, so we take 64K below that.
+ * 512K of ROM at 0, 512K of RAM at 16M. We run from ROM,
+ * and use the last 32K of RAM for BSS + stack.
  */
 MEMORY
 {
     vectors(rw) : ORIGIN = 0, LENGTH = 1K
-    loadspace(rw) : ORIGIN = 1K, LENGTH = 31K
-    runspace(rwx) : ORIGIN = 16M - 96K, LENGTH = 64K
+    rom(rx) : ORIGIN = 1K, LENGTH = 512K
+    ram(rwx) : ORIGIN = 16M + 480K, LENGTH = 32K
 }
 
-PROVIDE(_reset_vector = ORIGIN(loadspace));
+PROVIDE(_reset_vector = ORIGIN(rom));
 
 SECTIONS
 {
@@ -74,7 +70,7 @@ SECTIONS
 
     } > vectors
 
-    .text ORIGIN(runspace) :
+    .text ORIGIN(rom) :
     {
         _btext = .;
         KEEP(*(.entrypoint))
@@ -87,7 +83,7 @@ SECTIONS
         _ecommands = .;
         _etext = .;
         *(.lit);
-    } > runspace AT> loadspace
+    } > rom
     
     .data :
     {
@@ -97,7 +93,7 @@ SECTIONS
         *(.data .data.*);
         . = ALIGN(0x4);
         _edata = .;
-    } > runspace AT> loadspace
+    } > ram AT rom
 
     .bss :
     {
@@ -105,13 +101,11 @@ SECTIONS
         *(.shbss);
         *(.bss .bss.*);
         *(COMMON);
-        _vector_savearea = .;
-        . += _vector_top - _vector_base;
         _stack_base = .;
-        . = ORIGIN(runspace) + LENGTH(runspace);
+        . = ORIGIN(ram) + LENGTH(ram);
         _stack_top = .;
         _ebss = .;
-    } > runspace
+    } > ram
 
     .stab 0 (NOLOAD) :
     {
@@ -123,10 +117,5 @@ SECTIONS
         *(.stabstr);
     }
 }
-
-/* parameters for the relocator */
-_reloc_source = ORIGIN(loadspace);
-_reloc_destination = ORIGIN(runspace);
-_reloc_end = ORIGIN(runspace) + LENGTH(runspace);
 
 ASSERT((_stack_top - _stack_base) > 2048, "less than 2K stack available")

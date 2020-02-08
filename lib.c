@@ -311,20 +311,17 @@ hexdump(uintptr_t addr, uintptr_t address, size_t length, char width)
  * @param[in]  <unnamed>  format string arguments
  */
 void
-fmt(const char *format, ...)
+_fmt(void (*emit)(char c), const char *format, va_list ap)
 {
     char c;
-    va_list ap;
     bool dofmt = false;
-
-    va_start(ap, format);
 
     while ((c = *format++) != 0) {
         if (!dofmt) {
             if (c == '%') {
                 dofmt = true;
             } else {
-                putc(c);
+                emit(c);
             }
 
             continue;
@@ -335,7 +332,7 @@ fmt(const char *format, ...)
         switch (c) {
         case 'c': {
                 char c = va_arg(ap, int);
-                putc(c);
+                emit(c);
                 break;
             }
 
@@ -343,7 +340,7 @@ fmt(const char *format, ...)
                 int v = va_arg(ap, int);
 
                 if (v < 0) {
-                    putc('-');
+                    emit('-');
                     v = -v;
                 }
 
@@ -389,16 +386,25 @@ fmt(const char *format, ...)
             }
 
         case '%': {
-            putc('%');
+            emit('%');
             break;
         }
 
         default:
-            putc('%');
-            putc(c);
+            emit('%');
+            emit(c);
             break;
         }
     }
+}
+
+void
+fmt(const char *format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    _fmt(putc, format, ap);
+    va_end(ap);
 }
 
 static int
