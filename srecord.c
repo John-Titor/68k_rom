@@ -1,6 +1,7 @@
 /*
  * S-record handler
  */
+#ifdef WITH_SRECORD
 
 #include "proto.h"
 
@@ -162,3 +163,5 @@ srecord(const char *input_buffer)
     }
     return -1;
 }
+
+#endif // WITH_SRECORD

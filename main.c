@@ -7,13 +7,10 @@
 #define STR(_x) #_x
 #define XSTR(_x) STR(_x)
 static const char *banner = "\n\n68k monitor for %s " XSTR(GITHASH) "\n";
+static const char *auto_script = XSTR(AUTO_SCRIPT);
 
 static void cmd_execute(const char *cmd);
 static void cmd_script(const char *script);
-
-static const char *auto_script =
-//    "emutos"
-    "\0";
 
 void
 main()

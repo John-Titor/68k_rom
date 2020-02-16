@@ -1,5 +1,5 @@
 /*
- * Linker script for ROM on Tiny68k SBC
+ * Linker script for ROM on P90MB SBC
  */
 
 OUTPUT_ARCH(m68k)

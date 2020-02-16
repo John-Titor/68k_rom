@@ -1,3 +1,5 @@
+#ifdef WITH_TESTS
+
 #include "proto.h"
 
 static void
@@ -52,7 +54,6 @@ cf_test()
     }
 }
 
-#ifdef TEST
 COMMAND(cmd_test);
 
 static int
@@ -68,4 +69,5 @@ cmd_test(const char *input_buffer)
 
     return -1;
 }
-#endif
+
+#endif // WITH_TESTS

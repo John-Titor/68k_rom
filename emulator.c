@@ -133,6 +133,5 @@ emulator(const char *input_buffer)
     if (!strcmp(input_buffer, "shutdown")) {
         nf_exit();
     }
-
     return -1;
 }

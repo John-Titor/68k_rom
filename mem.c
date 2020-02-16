@@ -1,3 +1,5 @@
+#ifdef WITH_MEM_CMDS
+
 #include "proto.h"
 
 COMMAND(cmd_memdump);
@@ -19,3 +21,5 @@ cmd_memdump(const char *input_buffer)
 
     return -1;
 }
+
+#endif // WITH_MEM_CMDS

@@ -1,3 +1,5 @@
+#ifdef WITH_EMUTOS
+
 #include "proto.h"
 #include "pffs/pff.h"
 
@@ -75,3 +77,5 @@ emutos(const char *input_buffer)
 
     return -1;
 }
+
+#endif // WITH_EMUTOS

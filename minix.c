@@ -2,6 +2,8 @@
  * Minix loader
  */
 
+#ifdef WITH_MINIX
+
 #include "proto.h"
 #include "pffs/pff.h"
 
@@ -82,3 +84,5 @@ minix(const char *input_buffer)
 
     return -1;
 }
+
+#endif // WITH_MINIX

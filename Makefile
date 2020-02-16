@@ -1,6 +1,6 @@
 # Build ROM for Tiny68k
 
-TOOL_PREFIX		 = /Volumes/CTNG/m68k-unknown-elf/bin/m68k-unknown-elf-
+TOOL_PREFIX		 = m68k-unknown-elf-
 CC			 = $(TOOL_PREFIX)cc
 OBJCOPY			 = $(TOOL_PREFIX)objcopy
 SIZE			 = $(TOOL_PREFIX)size
@@ -14,12 +14,13 @@ GITHASH			:= $(shell git describe --always --dirty=-modified)
 
 OPTS			 = -I$(COMPILER_INCLUDES) \
 			   -DGITHASH=$(GITHASH) \
-			   -DTEST=1 \
+			   -DAUTO_SCRIPT="$(AUTO_SCRIPT)\0" \
 			   -std=gnu17 \
 			   -Wall \
 			   -Wextra \
 			   -Werror \
 			   -Os \
+			   -g \
 			   -fomit-frame-pointer \
 			   -ffreestanding \
 			   -nostdinc \
@@ -28,16 +29,26 @@ OPTS			 = -I$(COMPILER_INCLUDES) \
 			   -fdata-sections \
 			   -Wl,-gc-sections \
 			   -Wl,-Map=$(board).map \
-			   -T link_$(board).ld
+			   -T $(board).ld
 
 OPTS_tiny68k		 = -mcpu=68000 \
-			   -DWITH_STARTUP_RELOCATION
+			   -DWITH_STARTUP_RELOCATION \
+			   -DWITH_SRECORD \
+			   -DWITH_MINIX \
+			   -DWITH_EMUTOS \
+			   -DWITH_MEM_CMDS \
+			   -DWITH_TESTS
 
 OPTS_t68krc		 = -mcpu=68000 \
 			   -DWITH_STARTUP_RELOCATION
 
 OPTS_p90mb		 = -mcpu=68010 \
-			   -DWITH_STARTUP_DATA_COPY
+			   -DWITH_STARTUP_DATA_COPY \
+			   -DWITH_SRECORD \
+			   -DWITH_MEM_CMDS \
+			   -DWITH_TESTS
+
+OVERRIDES		?=
 
 CSRCS			:= $(wildcard *.c)
 ASRCS			:= $(wildcard *.S)
@@ -47,7 +58,7 @@ LIBSRCS			:= $(foreach dir,$(LIBDIRS),$(foreach suffix,c S,$(wildcard $(dir)/*.$
 ALL_SRCS		:= $(CSRCS) $(ASRCS) $(LIBSRCS)
 FORMAT_SRCS		:= $(CSRCS) $(HDRS)
 
-BOARDS			:= $(patsubst board_%.c, %, $(wildcard board_*.c))
+BOARDS			:= $(patsubst %.ld, %, $(wildcard *.ld))
 ROMS			 = $(addsuffix .rom, $(BOARDS))
 ELFS			 = $(addsuffix .elf, $(BOARDS))
 SRECS			 = $(addsuffix .s19, $(BOARDS))
@@ -67,7 +78,7 @@ $(BOARDS):
 $(ELFS): board=$(basename $@)
 $(ELFS): $(ALL_SRCS) $(HDRS) $(LINKER_SCRIPT) $(MAKEFILE_LIST)
 	@echo ==== BUILD: $(board)
-	$(CC) -DCONFIG_BOARD_$(board) $(OPTS_$(board)) $(OPTS) -o $@ $(ALL_SRCS) $(LIBGCC)
+	$(CC) -DCONFIG_BOARD_$(board) $(OPTS_$(board)) $(OPTS) $(OVERRIDES) -o $@ $(ALL_SRCS) $(LIBGCC)
 	$(SIZE) $@
 
 clean:

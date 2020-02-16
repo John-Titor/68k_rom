@@ -15,6 +15,7 @@ Tasks:
   ☐ Pass arguments to loader_go()
   ✔ Native Features support @done (20-02-07 21:10)
   ☐ 68010+ startup should put vector address in VTOR @high
+  ☐ pack / decompress at startup for small ROMs?
   
   selftest commands:
     ☐ exception generator
@@ -26,7 +27,7 @@ Things to fix:
 
 Nice to have:
   ☐ disassembly format
-  ☐ try building with newlib & tiny specs / nofloat
+  ✘ try building with newlib & tiny specs / nofloat @cancelled (20-02-15 11:28)
 
 Tests:
   ✔ scan needs test cases @done (20-01-09 20:04)
