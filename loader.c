@@ -27,14 +27,17 @@ init_loader()
 int
 loader_load_bytes(uint32_t address, uint8_t *bytes, size_t count)
 {
-    // copy bytes to memory or vector save area as required
-    for (size_t index = 0; index < count; count++, address++) {
-        if (address < vector_savearea_size) {
-            vector_savearea[address] = bytes[index];
-        } else {
-            *(uint8_t *)(address++) = bytes[index];
-        }
+    if (address < vector_savearea_size) {
+        size_t savecount = ((address + count) > vector_savearea_size) ? (vector_savearea_size - address) : count;
+
+        memcpy(vector_savearea + address, bytes, savecount);
+        count -= savecount;
+        address += savecount;
+        bytes += savecount;
     }
+
+    memcpy((uint8_t *)address, bytes, count);
+
     /* XXX could check for out-of-bounds */
     return 0;
 }
