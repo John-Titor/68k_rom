@@ -1,5 +1,6 @@
 *.bin
 *.elf
+*.rom
 *.map
 *.s19
 *.sublime-workspace
