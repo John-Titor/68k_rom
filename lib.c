@@ -381,7 +381,9 @@ _fmt(void (*emit)(char c), const char *format, va_list ap)
 
         case 's': {
                 const char *v = va_arg(ap, const char *);
-                puts(v);
+                while (*v) {
+                    emit(*v++);
+                }
                 break;
             }
 
