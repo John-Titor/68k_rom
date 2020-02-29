@@ -60,7 +60,7 @@ emutos_load()
     fmt("EmuTOS version %s\n", emutos_buffer + version_offset);
 
     loader_set_entry(TOS_ROM_BASE);
-    loader_go();
+    loader_go(0, 0);
 }
 
 COMMAND(emutos);

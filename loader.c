@@ -5,7 +5,6 @@
  */
 
 #include "proto.h"
-typedef __attribute__((noreturn)) void (*entry_function)(void);
 
 static uintptr_t loader_entrypoint = ~(uintptr_t)0;
 
@@ -51,14 +50,22 @@ loader_set_entry(uint32_t address)
     return 0;
 }
 
+extern void _loader_go(uint32_t d0, uint32_t a0, uintptr_t entry) __attribute__((noreturn));
+__asm__ (
+"_loader_go:                                            \n"
+"   addql   #4, %sp                                     \n"
+"   moveml  %sp@+, %d0/%a0                              \n"
+"   rts                                                 \n"
+);
+
 void
-loader_go()
+loader_go(uint32_t d0, uint32_t a0)
 {
     if (loader_entrypoint != ~(uintptr_t)0) {
         board_status(8);
         board_deinit();
         memcpy(0, vector_savearea, vector_savearea_size);
 
-        ((entry_function)loader_entrypoint)();
+        _loader_go(d0, a0, loader_entrypoint);
     }
 }

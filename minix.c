@@ -35,6 +35,39 @@
 
 static const char *minix_image_name = "MINIX.IMG";
 
+#define ENV_SIZE 255
+static int env_len;
+static char env[ENV_SIZE + 1];
+
+static void
+env_emit(char c)
+{
+    if (env_len <= ENV_SIZE)
+        env[env_len++] = c;
+}
+
+static void
+env_fmt(const char *format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    _fmt(env_emit, format, ap);
+    va_end(ap);
+    env_len += 1;   /* keep trailing NUL */
+}
+
+// static void
+// minix_setenv_str(const char *name, const char *value)
+// {
+//     env_fmt("%s=%s", name, value);
+// }
+
+static void
+minix_setenv_num(const char *name, uint32_t value)
+{
+    env_fmt("%s=%u", name, value);
+}
+
 static int
 minix_load()
 {
@@ -60,18 +93,27 @@ minix_load()
         putln(" read error");
         return -1;
     }
+    if (strncmp((const char *)&bootblk[1], "MINIX ", 6)) {
+        putln(" no signature");
+        return -1;
+    }
+
     uint16_t sum = 0;
     for (int i = 0; i < 256; i++) {
         sum += bootblk[i];
     }
+    if (sum != 0x1234) {
+        fmt(" %w", sum);
+        putln(" bad checksum");
+        return -1;
+    }
+
     uint16_t nsec = 0;
     for (int i = 16; i > 6; i--) {
         nsec += bootblk[256 - i];
     }
-    if (strncmp((const char *)&bootblk[1], "MINIX ", 6)
-        || (sum != 0x1234)
-        || (nsec != bootblk[256 - 4])) {
-        putln(" bootblock not valid");
+    if (nsec != bootblk[256 - 4]) {
+        putln(" sizes not valid");
         return -1;
     }
     putln("ok.");
@@ -108,7 +150,10 @@ minix_load()
         }
     }
     putln(" booting...");
-    loader_go();
+
+    minix_setenv_num("memsize", 16384 - 32);
+    loader_go(0, (uintptr_t)&env[0]);
+
     return -1;
 }
 

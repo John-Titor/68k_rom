@@ -27,7 +27,7 @@ extern int fs_read(const char *name, void *buffer, size_t buffer_size);
 extern void init_loader();
 extern int loader_load_bytes(uint32_t address, uint8_t *bytes, size_t count);
 extern int loader_set_entry(uint32_t address);
-extern void loader_go();
+extern void loader_go(uint32_t d0, uint32_t a0);
 
 typedef int (*cmd_handler_fn)(const char *input_buffer);
 #define COMMAND(handler_function)                               \

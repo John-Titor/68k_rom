@@ -159,7 +159,7 @@ srecord(const char *input_buffer)
             return 0;
         }
     } else if (!strcmp(input_buffer, "go")) {
-        loader_go();
+        loader_go(0, 0);
     }
     return -1;
 }
