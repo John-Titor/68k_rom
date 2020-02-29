@@ -202,8 +202,15 @@ getln(uint32_t timeout)
 
 static const char *hextab = "0123456789abcdef";
 
+static void emits(void (*emit)(char c), const char *s)
+{
+    while (*s) {
+        emit(*s++);
+    }
+}
+
 static void
-putx(uint32_t value, size_t len)
+emitx(void (*emit)(char c), uint32_t value, size_t len)
 {
     uint32_t shifts = len * 2;
     char buf[shifts + 1];
@@ -217,11 +224,17 @@ putx(uint32_t value, size_t len)
         *--p = hextab[nibble];
     } while (p > buf);
 
-    puts(p);
+    emits(emit, p);
 }
 
 static void
-putd(uint32_t value)
+putx(uint32_t value, size_t len)
+{
+    emitx(putc, value, len);
+}
+
+static void
+emitd(void (*emit)(char c), uint32_t value)
 {
     if (value == 0) {
         putc('0');
@@ -238,8 +251,14 @@ putd(uint32_t value)
         *--p = hextab[digit];
     }
 
-    puts(p);
+    emits(emit, p);
 }
+
+// static void
+// putd(uint32_t value)
+// {
+//     emitd(putc, value);
+// }
 
 #define WSELECT(_s, _l, _w, _b) ((_s) == 'l') ? (_l) : ((_s) == 'w') ? (_w) : (_b)
 
@@ -344,46 +363,44 @@ _fmt(void (*emit)(char c), const char *format, va_list ap)
                     v = -v;
                 }
 
-                putd(v);
+                emitd(emit, v);
                 break;
             }
 
         case 'u': {
                 uint32_t v = va_arg(ap, uint32_t);
-                putd(v);
+                emitd(emit, v);
                 break;
             }
 
         case 'p': {
                 void *v = va_arg(ap, void *);
-                puts("0x");
-                putx((uintptr_t)v, sizeof(v));
+                emits(emit, "0x");
+                emitx(emit, (uintptr_t)v, sizeof(v));
                 break;
             }
 
         case 'b': {
                 uint8_t v = va_arg(ap, uint32_t);
-                putx(v, sizeof(v));
+                emitx(emit, v, sizeof(v));
                 break;
             }
 
         case 'w': {
                 uint16_t v = va_arg(ap, uint32_t);
-                putx(v, sizeof(v));
+                emitx(emit, v, sizeof(v));
                 break;
             }
 
         case 'l': {
                 uint32_t v = va_arg(ap, uint32_t);
-                putx(v, sizeof(v));
+                emitx(emit, v, sizeof(v));
                 break;
             }
 
         case 's': {
                 const char *v = va_arg(ap, const char *);
-                while (*v) {
-                    emit(*v++);
-                }
+                emits(emit, v);
                 break;
             }
 
