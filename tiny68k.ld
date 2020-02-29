@@ -127,6 +127,6 @@ SECTIONS
 /* parameters for the relocator */
 _reloc_source = ORIGIN(loadspace);
 _reloc_destination = ORIGIN(runspace);
-_reloc_end = ORIGIN(runspace) + LENGTH(runspace);
+_reloc_end = _edata;
 
 ASSERT((_stack_top - _stack_base) > 2048, "less than 2K stack available")
