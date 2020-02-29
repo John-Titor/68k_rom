@@ -18,15 +18,14 @@ extern uint32_t     _nfCall(uint32_t ID, ...);
  * a0 - address of illegal vector
  * a1 - old sp
  */
-__asm__
-(
+__asm__ (
+"_detect_native_features:                                               \n"
 #if defined(__mc68010) || defined(__mc68020) || defined(__mc68030) || defined(__mc68040)
 "        movec   %vbr, %a0                                              \n"
 "        add.l   #0x10, %a0                                             \n"
 #else
 "        move.l  #0x10, %a0                                             \n"
 #endif
-"_detect_native_features:                                               \n"
 "        moveq   #0, %d0             /* assume no NatFeats available */ \n"
 "        move.l  %sp, %a1                                               \n"
 "        move.l  (%a0), %d1                                             \n"
@@ -99,6 +98,22 @@ nf_exit()
     }
     for (;;) ;
 }
+
+#if 0
+static void
+nf_trace(bool enable)
+{
+    static int nfid_trace = 0;
+
+    if (nfid_trace == 0) {
+        nfid_trace = nf_id("NF_TRACE");
+    }
+
+    if (nfid_trace > 0) {
+        _nfCall(nfid_trace, enable);
+    }
+}
+#endif
 
 void
 trace_puts(const char *str)
