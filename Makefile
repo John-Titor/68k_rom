@@ -76,7 +76,7 @@ $(BOARDS):
 	$(OBJCOPY) -O srec $< $@
 
 $(ELFS): board=$(basename $@)
-$(ELFS): $(ALL_SRCS) $(HDRS) $(LINKER_SCRIPT) $(MAKEFILE_LIST)
+$(ELFS): $(ALL_SRCS) $(HDRS) $(@:.elf.ld) $(MAKEFILE_LIST)
 	@echo ==== BUILD: $(board)
 	$(CC) -DCONFIG_BOARD_$(board) $(OPTS_$(board)) $(OPTS) $(OVERRIDES) -o $@ $(ALL_SRCS) $(LIBGCC)
 	$(SIZE) $@

@@ -10,7 +10,7 @@ static uintptr_t loader_entrypoint = ~(uintptr_t)0;
 
 extern uint8_t _btext;
 extern uint8_t _vector_top;
-extern uint8_t _vector_savearea;
+extern uint8_t _vector_savearea __attribute__((weak));
 
 static uint8_t *vector_savearea = &_vector_savearea;
 static uint32_t vector_savearea_size = (uintptr_t)&_vector_top;
@@ -20,13 +20,15 @@ void
 init_loader()
 {
     loader_entrypoint = ~(uintptr_t)0;
-    memcpy(vector_savearea, 0, vector_savearea_size);
+    if (vector_savearea != 0) {
+        memcpy(vector_savearea, 0, vector_savearea_size);
+    }
 }
 
 int
 loader_load_bytes(uint32_t address, uint8_t *bytes, size_t count)
 {
-    if (address < vector_savearea_size) {
+    if ((vector_savearea != 0) && (address < vector_savearea_size)) {
         size_t savecount = ((address + count) > vector_savearea_size) ? (vector_savearea_size - address) : count;
 
         memcpy(vector_savearea + address, bytes, savecount);
@@ -64,7 +66,9 @@ loader_go(uint32_t d0, uint32_t a0)
     if (loader_entrypoint != ~(uintptr_t)0) {
         board_status(8);
         board_deinit();
-        memcpy(0, vector_savearea, vector_savearea_size);
+        if (vector_savearea != 0) {
+            memcpy(0, vector_savearea, vector_savearea_size);
+        }
 
         _loader_go(d0, a0, loader_entrypoint);
     }

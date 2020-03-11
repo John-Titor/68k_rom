@@ -50,24 +50,6 @@ SECTIONS
         LONG(vector_67)
         _vector_top = .;
 
-        /* default handlers */
-        PROVIDE(vector_bus_error                = vector_unhandled_exception);
-        PROVIDE(vector_address_error            = vector_unhandled_exception);
-        PROVIDE(vector_illegal_instruction      = vector_unhandled_exception);
-        PROVIDE(vector_zero_divide              = vector_unhandled_exception);
-        PROVIDE(vector_chk                      = vector_unhandled_exception);
-        PROVIDE(vector_trapv                    = vector_unhandled_exception);
-        PROVIDE(vector_privilege_violation      = vector_unhandled_exception);
-        PROVIDE(vector_trace                    = vector_unhandled_exception);
-        PROVIDE(vector_line_a                   = vector_unhandled_exception);
-        PROVIDE(vector_line_f                   = vector_unhandled_exception);
-        PROVIDE(vector_uninitialized_interrupt  = vector_unhandled_exception);
-        PROVIDE(vector_spurious_interrupt       = vector_unhandled_exception);
-        PROVIDE(vector_64                       = vector_unhandled_exception);
-        PROVIDE(vector_65                       = vector_unhandled_exception);
-        PROVIDE(vector_66                       = vector_unhandled_exception);
-        PROVIDE(vector_67                       = vector_unhandled_exception);
-
     } > vectors
 
     .text ORIGIN(rom) :
@@ -93,7 +75,7 @@ SECTIONS
         *(.data .data.*);
         . = ALIGN(0x4);
         _edata = .;
-    } > ram AT rom
+    } > ram AT> rom
 
     .bss :
     {

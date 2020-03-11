@@ -9,6 +9,6 @@
 #ifdef CONFIG_BOARD_t68krc
 const char *board_name = "T68KRC";
 # define CONFIG_BOARD_t68k_common
-# include "board_tiny68k.c"
+# include "tiny68k.c"
 
 #endif /* CONFIG_BOARD_T68KRC */

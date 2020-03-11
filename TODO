@@ -12,7 +12,7 @@ Tasks:
     ☐ utility command
     ☐ read/write EEPROM
     ☐ NVRAM
-  ☐ Pass arguments to loader_go()
+  ✔ Pass arguments to loader_go() @done (20-03-10 22:28)
   ✔ Native Features support @done (20-02-07 21:10)
   ☐ 68010+ startup should put vector address in VTOR @high
   ☐ pack / decompress at startup for small ROMs?
@@ -25,7 +25,7 @@ Tasks:
 
 Things to fix:
   ✔ explicitly size everything, unsigned -> uint16_t, long -> uint32_t etc. @done (20-01-09 20:04)
-  ☐ illegal instruction (etc?) vector is not working
+  ✔ illegal instruction (etc?) vector is not working @done (20-03-11 00:13)
 
 Nice to have:
   ☐ disassembly format
