@@ -14,7 +14,7 @@ Tasks:
 
 Things to fix:
   ☐ NatFeat detection relies on writing to (vbr), no good if vectors are in ROM...
-  ☐ scan selftest is failing @high
+  ✔ scan selftest is failing @high @done (22-06-23 22:07)
     scan 'test  a 1234 0x789 0xabcDE' -> -1, a 0 0x0000 0x00000000
   ☐ CB030 CompactFlash registers are probably wrong
 

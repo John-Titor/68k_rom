@@ -14,7 +14,7 @@ cmd_memdump(const char *input_buffer)
     if (input_buffer == NULL) {
         putln("md.[bwl] [<address> [<count>]]    display memory");
 
-    } else if (scan(input_buffer, "md.%c %l %w", &width, &address, &count) >= 1) {
+    } else if (scan(input_buffer, "md.%c %l %l", &width, &address, &count) >= 1) {
         address += hexdump(address, address, count, width);
         return 0;
     }

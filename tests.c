@@ -29,14 +29,14 @@ cons_test()
         NULL);
 
     const char *scantest = "test  a 1234 0x789 0xabcDE";
-    const char *scanfmt = "test %c %w %w %l";
+    const char *scanfmt = "test %c %l %l %l";
     char v1 = 0;
-    uint16_t v2 = 0;
-    uint16_t v3 = 0;
+    uint32_t v2 = 0;
+    uint32_t v3 = 0;
     uint32_t v4 = 0;
     int result = scan(scantest, scanfmt, &v1, &v2, &v3, &v4);
 
-    fmt("scan '%s' -> %d, %c %u 0x%w 0x%l\n", scantest, result, v1, v2, v3, v4);
+    fmt("scan '%s' -> %d, %c %u 0x%l 0x%l\n", scantest, result, v1, v2, v3, v4);
 }
 
 static void
