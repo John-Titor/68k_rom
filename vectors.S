@@ -12,11 +12,16 @@
     .section .entrypoint
 _reset:
     reset                   /* reset peripherals */
-    move.w #0x2700, %sr     /* make sure interrupts are off */
+    move.w  #0x2700, %sr    /* make sure interrupts are off */
     lea     _stack_top, %sp /* ensure stack pointer */
 
-#ifdef WITH_STARTUP_RELOCATION
-    /* copy ourselves to the run area */
+#if defined(STARTUP_TOUCH_ADDRESS)
+    /* disable ROM jam-to-zero */
+    move.l  (STARTUP_TOUCH_ADDRESS), %d0
+#endif /* STARTUP_TOUCH_ADDRESS */
+
+#if defined(WITH_STARTUP_RELOCATION) || defined(WITH_STARTUP_DATA_COPY)
+    /* copy from ROM to RAM - maybe entire program or just .data */
     lea     _reloc_source, %a0
     lea     _reloc_destination, %a1
     lea     _reloc_end, %a2
@@ -26,19 +31,26 @@ _reset:
 2:
     cmp.l   %a1, %a2
     jne     1b
+#endif /* WITH_STARTUP_RELOCATION || WITH_STARTUP_DATA_COPY */
 
+#if defined(WITH_STARTUP_RELOCATION)
     /* force a long jump to the run location */
     lea     3f, %a0
     jra     (%a0)
 3:
 #endif /* WITH_STARTUP_RELOCATION */
 
+#if defined(WITH_VBR)
+    lea     _vector_base, %a0
+    movec   %a0, %vbr
+#endif /* WITH_VBR */
+
     /* zero the BSS (always 32-aligned)  */
     lea     _edata, %a0
     lea     _ebss, %a1
     jra     5f
 4:
-    clrl    (%a0)+
+    clr.l    (%a0)+
 5:
     cmp.l   %a0, %a1
     jne     4b

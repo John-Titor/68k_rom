@@ -1,11 +1,11 @@
-# Build ROM for Tiny68k
+# Build ROM for various m68k boards
 
 TOOL_PREFIX		 = m68k-unknown-elf-
 CC			 = $(TOOL_PREFIX)cc
 OBJCOPY			 = $(TOOL_PREFIX)objcopy
 SIZE			 = $(TOOL_PREFIX)size
 
-LIBDIRS			 = ihr newlib pffs
+LIBDIRS			 = newlib pffs
 
 LIBGCC			:= $(shell $(CC) --print-file-name libgcc.a)
 COMPILER_INCLUDES	 = $(dir $(LIBGCC))include
@@ -37,16 +37,28 @@ OPTS_tiny68k		 = -mcpu=68000 \
 			   -DWITH_MINIX \
 			   -DWITH_EMUTOS \
 			   -DWITH_MEM_CMDS \
-			   -DWITH_TESTS
+			   -DWITH_TESTS \
+			   -DWITH_NATIVE_FEATURES
 
 OPTS_t68krc		 = -mcpu=68000 \
 			   -DWITH_STARTUP_RELOCATION
 
 OPTS_p90mb		 = -mcpu=68010 \
 			   -DWITH_STARTUP_DATA_COPY \
+			   -DWITH_VBR \
 			   -DWITH_SRECORD \
 			   -DWITH_MEM_CMDS \
 			   -DWITH_TESTS
+
+OPTS_cb030		 = -mcpu=68030 \
+			   -DWITH_STARTUP_DATA_COPY \
+			   -DSTARTUP_TOUCH_ADDRESS=0xffff8000 \
+			   -DWITH_VBR \
+			   -DWITH_SRECORD \
+			   -DWITH_MEM_CMDS \
+			   -DWITH_TESTS \
+			   -DWITH_OSK \
+			   -DWITH_8BIT_COMPACT_FLASH
 
 OVERRIDES		?=
 

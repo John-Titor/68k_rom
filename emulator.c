@@ -58,6 +58,7 @@ __asm__ (
 static int
 nf_id(const char *method)
 {
+#if defined(WITH_NATIVE_FEATURES)
     static bool probed, supported;
 
     if (!probed && _detect_native_features()) {
@@ -67,6 +68,9 @@ nf_id(const char *method)
     if (supported) {
         return _nfID(method);
     }
+#else
+    (void)method;
+#endif /* WITH_NATIVE_FEATURES */
     return -1;
 }
 
@@ -82,21 +86,6 @@ nf_puts(const char *str)
     if (nfid_stderr > 0) {
         _nfCall(nfid_stderr, str);
     }
-}
-
-static void
-nf_exit()
-{
-    static int nfid_shutdown = 0;
-
-    if (nfid_shutdown == 0) {
-        nfid_shutdown = nf_id("NF_SHUTDOWN");
-    }
-
-    if (nfid_shutdown > 0) {
-        _nfCall(nfid_shutdown);
-    }
-    for (;;) ;
 }
 
 #if 0
@@ -137,6 +126,7 @@ trace_fmt(const char *format, ...)
     va_end(ap);
 }
 
+#if defined(WITH_NATIVE_FEATURES)
 COMMAND(emulator);
 
 static int
@@ -146,7 +136,11 @@ emulator(const char *input_buffer)
         puts("shutdown                          shutdown / quit if running in an emulator\n");
     }
     if (!strcmp(input_buffer, "shutdown")) {
-        nf_exit();
+        int nfid_shutdown = nf_id("NF_SHUTDOWN");
+        if (nfid_shutdown > 0) {
+            _nfCall(nfid_shutdown);
+        }
     }
     return -1;
 }
+#endif /* WITH_NATIVE_FEATURES */

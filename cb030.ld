@@ -1,5 +1,5 @@
 /*
- * Linker script for ROM on P90MB SBC
+ * Linker script for ROM on CB030 SBC
  */
 
 OUTPUT_ARCH(m68k)
@@ -7,17 +7,21 @@ OUTPUT(elf32-m68k)
 ENTRY(_reset_vector)
 
 /*
- * 512K of ROM at 0, 512K of RAM at 16M. We run from ROM,
- * and use the last 32K of RAM for BSS + stack.
+ * 16/64/128M of RAM at 0, ROM at 0xfe000000. 
+ * We run from ROM, and use the last 32K of the low 16M of RAM
+ * for BSS + stack.
+ *
+ * ROM is mirrored at 0 at startup, we'll turn off the mirror
+ * before touching RAM.
  */
 MEMORY
 {
-    vectors(rw) : ORIGIN = 0, LENGTH = 1K
-    rom(rx) : ORIGIN = 1K, LENGTH = 511K
-    ram(rwx) : ORIGIN = 16M + 480K, LENGTH = 32K
+    vectors(rw)   : ORIGIN = 0xfe000000, LENGTH = 1K
+    rom(rx)       : ORIGIN = 0xfe000400, LENGTH = 511K
+    ram(rwx)      : ORIGIN = 16M - 32K, LENGTH = 32K
 }
 
-PROVIDE(_reset_vector = ORIGIN(rom));
+PROVIDE(_reset_vector                   = ORIGIN(rom));
 
 SECTIONS
 {
@@ -59,7 +63,7 @@ SECTIONS
         *(.text .text.*);
         KEEP(*(INTERRUPT_HANDLERS));
         *(.rodata .rodata.*);
-        . = ALIGN(0x4);
+        . = ALIGN(4);
         _commands = .;
         KEEP(*(COMMANDS))
         _ecommands = .;
@@ -74,7 +78,7 @@ SECTIONS
         *(.got.plt) *(.got);
         *(.shdata);
         *(.data .data.*);
-        . = ALIGN(0x4);
+        . = ALIGN(4);
         _edata = .;
         _reloc_end = .;
     } > ram AT> rom
@@ -82,7 +86,7 @@ SECTIONS
 
     .bss :
     {
-        . = ALIGN(0x4);
+        . = ALIGN(4);
         *(.shbss);
         *(.bss .bss.*);
         *(COMMON);

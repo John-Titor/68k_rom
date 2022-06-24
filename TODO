@@ -1,19 +1,8 @@
 Tasks:
-  ✔ REPL command support @done (20-01-09 22:30)
-    ✔ help @done (20-01-09 22:30)
-    ✔ memory dumper @done (20-01-09 22:30)
-  ✔ CF driver @done (20-01-11 10:01)
-    ✔ init @done (20-01-11 10:01)
-    ✔ block read @done (20-01-11 10:01)
-  ✔ filesystem reader @done (20-01-11 13:58)
-    ✔ ChaN PFFS @done (20-01-11 13:58)
-    ✔ read file into memory @done (20-01-11 13:58)
   ☐ I2C read/write @low
     ☐ utility command
     ☐ read/write EEPROM
     ☐ NVRAM
-  ✔ Pass arguments to loader_go() @done (20-03-10 22:28)
-  ✔ Native Features support @done (20-02-07 21:10)
   ☐ 68010+ startup should put vector address in VTOR @high
   ☐ pack / decompress at startup for small ROMs?
   ☐ CP/M BIOS? Generic BIOS?
@@ -24,13 +13,32 @@ Tasks:
     ☐ memory exerciser
 
 Things to fix:
-  ✔ explicitly size everything, unsigned -> uint16_t, long -> uint32_t etc. @done (20-01-09 20:04)
-  ✔ illegal instruction (etc?) vector is not working @done (20-03-11 00:13)
+  ☐ NatFeat detection relies on writing to (vbr), no good if vectors are in ROM...
+  ☐ scan selftest is failing @high
+    scan 'test  a 1234 0x789 0xabcDE' -> -1, a 0 0x0000 0x00000000
+  ☐ CB030 CompactFlash registers are probably wrong
 
 Nice to have:
   ☐ disassembly format
-  ✘ try building with newlib & tiny specs / nofloat @cancelled (20-02-15 11:28)
 
 Tests:
-  ✔ scan needs test cases @done (20-01-09 20:04)
   ☐ verify that p90mb s-record upload works (vector save area size is zero)
+
+Archive:
+ ✔ CB030 support @done (22-06-23 20:39) @project(Tasks)
+ ✔ make NatFeat optional as a workaround @done (22-06-23 20:38) @project(Things to fix)
+ ✔ illegal instruction (etc?) vector is not working @done (20-03-11 00:13) @project(Things to fix)
+ ✔ Pass arguments to loader_go() @done (20-03-10 22:28) @project(Tasks)
+ ✘ try building with newlib & tiny specs / nofloat @cancelled (20-02-15 11:28) @project(Nice to have)
+ ✔ Native Features support @done (20-02-07 21:10) @project(Tasks)
+ ✔ read file into memory @done (20-01-11 13:58) @project(Tasks)
+ ✔ filesystem reader @done (20-01-11 13:58) @project(Tasks)
+ ✔ ChaN PFFS @done (20-01-11 13:58) @project(Tasks)
+ ✔ init @done (20-01-11 10:01) @project(Tasks)
+ ✔ block read @done (20-01-11 10:01) @project(Tasks)
+ ✔ CF driver @done (20-01-11 10:01) @project(Tasks)
+ ✔ memory dumper @done (20-01-09 22:30) @project(Tasks)
+ ✔ help @done (20-01-09 22:30) @project(Tasks)
+ ✔ REPL command support @done (20-01-09 22:30) @project(Tasks)
+ ✔ scan needs test cases @done (20-01-09 20:04) @project(Tests)
+ ✔ explicitly size everything, unsigned -> uint16_t, long -> uint32_t etc. @done (20-01-09 20:04) @project(Things to fix)

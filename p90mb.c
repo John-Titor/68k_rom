@@ -10,7 +10,6 @@
 
 #define IDE_BASE                0xffe000UL
 #define IDE_DATA16              REG16(IDE_BASE + 0x00)
-#define IDE_DATA8               REG8(IDE_BASE + 0x01)
 #define IDE_ERROR               REG8(IDE_BASE + 0x03)
 #define IDE_ERROR_ID_NOT_FOUND      0x10
 #define IDE_ERROR_UNCORRECTABLE     0x40
