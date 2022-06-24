@@ -3,7 +3,7 @@ Tasks:
     ☐ utility command
     ☐ read/write EEPROM
     ☐ NVRAM
-  ☐ 68010+ startup should put vector address in VTOR @high
+  ✔ 68010+ startup should put vector address in VTOR @high @done (22-06-23 22:08)
   ☐ pack / decompress at startup for small ROMs?
   ☐ CP/M BIOS? Generic BIOS?
   
@@ -14,9 +14,7 @@ Tasks:
 
 Things to fix:
   ☐ NatFeat detection relies on writing to (vbr), no good if vectors are in ROM...
-  ✔ scan selftest is failing @high @done (22-06-23 22:07)
-    scan 'test  a 1234 0x789 0xabcDE' -> -1, a 0 0x0000 0x00000000
-  ☐ CB030 CompactFlash registers are probably wrong
+  ✔ CB030 CompactFlash registers are probably wrong @done (22-06-23 22:08)
 
 Nice to have:
   ☐ disassembly format
@@ -25,6 +23,8 @@ Tests:
   ☐ verify that p90mb s-record upload works (vector save area size is zero)
 
 Archive:
+ ✔ scan selftest is failing @high @done (22-06-23 22:07) @project(Things to fix)
+  scan 'test  a 1234 0x789 0xabcDE' -> -1, a 0 0x0000 0x00000000
  ✔ CB030 support @done (22-06-23 20:39) @project(Tasks)
  ✔ make NatFeat optional as a workaround @done (22-06-23 20:38) @project(Things to fix)
  ✔ illegal instruction (etc?) vector is not working @done (20-03-11 00:13) @project(Things to fix)

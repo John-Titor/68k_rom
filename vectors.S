@@ -40,7 +40,19 @@ _reset:
 3:
 #endif /* WITH_STARTUP_RELOCATION */
 
-#if defined(WITH_VBR)
+#if defined(WITH_STARTUP_VECTOR_COPY)
+    lea     _vector_base, %a0
+    clr.l   %d0
+    movea   %d0, %a1
+    lea     _vector_top, %a2
+    jra     2f
+1:
+    move.l  (%a0)+, (%a1)+
+2:
+    cmp.l   %a0, %a2
+    jne     1b
+
+#elif defined(WITH_VBR)
     lea     _vector_base, %a0
     movec   %a0, %vbr
 #endif /* WITH_VBR */
